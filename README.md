@@ -6,7 +6,7 @@
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Spring Boot | 2.7.18 | 兼容 Java 8/11 |
+| Spring Boot | 3.5.16 | 基于 Jakarta EE，需 Java 17+ |
 | Spring Data JPA | - | ORM 框架 |
 | H2 Database | - | 内存数据库，开箱即用 |
 | Lombok | - | 简化 Java 代码 |
@@ -43,7 +43,7 @@ springboot-demo/
 
 ### 环境要求
 
-- JDK 11+（已验证 Java 11）
+- JDK 21+（LTS，已验证 Java 21）
 - 无需预装 Maven（使用 Maven Wrapper）
 
 ### 运行项目
@@ -161,7 +161,7 @@ curl -X DELETE http://localhost:8080/api/users/1
 所有接口返回统一的 JSON 结构：`{code, message, data}`
 
 ### 2. 参数校验
-使用 `@Valid` + `javax.validation` 注解进行参数校验：
+使用 `@Valid` + `jakarta.validation` 注解进行参数校验：
 - `@NotBlank` - 非空校验
 - `@Email` - 邮箱格式校验
 
