@@ -1,6 +1,6 @@
 # Spring Boot Demo
 
-一个完整的 Spring Boot 示例项目，展示 RESTful API、JPA 数据持久化、参数校验、全局异常处理等常用功能。
+一个完整的 Spring Boot 示例项目，展示 RESTful API、JPA + MyBatis 双持久层共存、参数校验、全局异常处理等常用功能。
 
 ## 技术栈
 
@@ -8,9 +8,20 @@
 |------|------|------|
 | Spring Boot | 3.5.16 | 基于 Jakarta EE，需 Java 17+ |
 | Spring Data JPA | - | ORM 框架 |
+| MyBatis | 3.0.4 | SQL Mapper 框架，与 JPA 共存 |
 | H2 Database | - | 内存数据库，开箱即用 |
 | Lombok | - | 简化 Java 代码 |
 | Maven Wrapper | 3.2.0 | 无需预装 Maven |
+
+## 双持久层设计（JPA + MyBatis）
+
+本项目同时集成 JPA 和 MyBatis，两者共享同一个数据源和同一张 `users` 表：
+
+- **JPA** 负责建表（`ddl-auto: update`），通过 `UserRepository`（Spring Data JPA）操作数据，接口前缀 `/api/users`。
+- **MyBatis** 通过 `UserMapper`（XML Mapper，见 `src/main/resources/mapper/UserMapper.xml`）读写同一张表，接口前缀 `/api/mybatis/users`。
+- 两套 API 功能完全等价，可通过 curl 交叉验证：JPA 写入的数据 MyBatis 能读到，反之亦然。
+- 事务统一由 Spring 管理（`@Transactional` 同时覆盖 JPA 与 MyBatis 操作）。
+- 注意：MyBatis 写入不触发 JPA 的 `@PrePersist` 回调，`UserMyBatisService` 中手动填充 `createdAt` / `updatedAt`。
 
 ## 项目结构
 
@@ -22,19 +33,25 @@ springboot-demo/
 └── src/
     ├── main/
     │   ├── java/com/example/demo/
-    │   │   ├── DemoApplication.java          # 启动类
+    │   │   ├── DemoApplication.java          # 启动类（@MapperScan 扫描 MyBatis Mapper）
     │   │   ├── controller/
-    │   │   │   └── UserController.java       # REST 控制器
+    │   │   │   ├── UserController.java       # REST 控制器（JPA 版）
+    │   │   │   └── MyBatisUserController.java # REST 控制器（MyBatis 版）
     │   │   ├── service/
-    │   │   │   └── UserService.java          # 业务逻辑层
+    │   │   │   ├── UserService.java          # 业务逻辑层（JPA）
+    │   │   │   └── UserMyBatisService.java   # 业务逻辑层（MyBatis）
     │   │   ├── repository/
-    │   │   │   └── UserRepository.java       # 数据访问层
+    │   │   │   └── UserRepository.java       # Spring Data JPA 仓库
+    │   │   ├── mapper/
+    │   │   │   └── UserMapper.java           # MyBatis Mapper 接口
     │   │   ├── entity/
     │   │   │   └── User.java                 # 实体类
     │   │   └── exception/
     │   │       └── GlobalExceptionHandler.java # 全局异常处理
     │   └── resources/
-    │       └── application.yml                # 应用配置
+    │       ├── application.yml                # 应用配置
+    │       └── mapper/
+    │           └── UserMapper.xml            # MyBatis SQL 映射文件
     └── test/java/com/example/demo/
         └── DemoApplicationTests.java          # 测试类
 ```
@@ -71,7 +88,7 @@ java -jar target/springboot-demo-1.0.0.jar
 
 ## API 接口
 
-所有接口前缀：`/api/users`
+两套等价接口：`/api/users`（JPA）与 `/api/mybatis/users`（MyBatis）。下方以 JPA 版为例，MyBatis 版路径前缀替换为 `/api/mybatis/users` 即可（额外提供 `GET /api/mybatis/users/username/{username}` 按用户名查询）。
 
 ### 1. 查询所有用户
 

@@ -18,13 +18,22 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update   # JPA 负责建表，MyBatis 直接读写同一张表
     show-sql: true
     properties:
       hibernate:
         format_sql: true
 
+# MyBatis 配置（与 JPA 共存）
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.demo.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
 logging:
   level:
     com.example.demo: DEBUG
     org.hibernate.SQL: DEBUG
+    com.example.demo.mapper: DEBUG
