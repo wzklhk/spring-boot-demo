@@ -1,0 +1,41 @@
+/* 全局主题：Vue 绿 (#41b883) 作为 Element Plus 主色，深色 header (#1a1a2e) */
+:root {
+  --el-color-primary: #41b883;
+  --el-color-primary-light-3: #67c69a;
+  --el-color-primary-light-5: #8dd4b2;
+  --el-color-primary-light-7: #b3e2ca;
+  --el-color-primary-light-8: #c6e9d8;
+  --el-color-primary-light-9: #d9f0e5;
+  --el-color-primary-dark-2: #349368;
+  --vue-green: #41b883;
+  --header-dark: #1a1a2e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', Arial, sans-serif;
+  background-color: #f5f7fa;
+  color: #2c3e50;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--vue-green);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
