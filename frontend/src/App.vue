@@ -1,6 +1,10 @@
 <template>
-  <el-container class="app-container">
-    <!-- 顶部导航：深色 header + Vue 绿点缀 + GitHub 链接 -->
+  <!-- 登录页：全屏渲染，不带主布局 -->
+  <router-view v-if="isLoginPage" />
+
+  <!-- 主布局（登录后） -->
+  <el-container v-else class="app-container">
+    <!-- 顶部导航：深色 header + Vue 绿点缀 + 用户信息 + GitHub 链接 -->
     <el-header class="app-header">
       <div class="header-left">
         <img src="/favicon.svg" alt="logo" class="logo-img" />
@@ -10,6 +14,23 @@
         </el-tag>
       </div>
       <div class="header-right">
+        <el-dropdown v-if="currentUser" trigger="click" @command="handleUserCommand">
+          <span class="user-chip">
+            <el-icon :size="15"><UserFilled /></el-icon>
+            <span>{{ currentUser.username }}</span>
+            <el-icon :size="12"><ArrowDown /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item disabled>
+                邮箱：{{ currentUser.email || '-' }}
+              </el-dropdown-item>
+              <el-dropdown-item divided command="logout">
+                <el-icon><SwitchButton /></el-icon>退出登录
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <a href="https://github.com/wzklhk/spring-boot-demo" target="_blank" rel="noopener" class="github-link">
           <el-icon :size="16"><Github /></el-icon>
           <span>GitHub</span>
@@ -53,10 +74,30 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { getUser, clearAuth } from './utils/auth'
+import { logout } from './api/auth'
 
 const route = useRoute()
+const router = useRouter()
+
+const isLoginPage = computed(() => route.path === '/login')
 const activeMenu = computed(() => route.path)
+const currentUser = computed(() => getUser())
+
+async function handleUserCommand(command) {
+  if (command === 'logout') {
+    try {
+      await logout()
+    } catch {
+      // 后端登出失败也继续前端清理
+    }
+    clearAuth()
+    ElMessage.success('已退出登录')
+    router.push('/login')
+  }
+}
 </script>
 
 <style scoped>
@@ -98,6 +139,30 @@ const activeMenu = computed(() => route.path)
 
 .stack-tag {
   margin-left: 4px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.user-chip:hover {
+  color: #fff;
+  background: rgba(65, 184, 131, 0.2);
 }
 
 .github-link {

@@ -2,7 +2,9 @@ package com.example.demo.service;
 
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,8 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> findAll() {
         return userRepository.findAll();
@@ -36,6 +40,10 @@ public class UserService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("邮箱已被注册: " + user.getEmail());
         }
+        // 密码 BCrypt 加密存储；未传密码时使用默认密码 123456
+        String rawPassword = (user.getPassword() == null || user.getPassword().isBlank())
+                ? "123456" : user.getPassword();
+        user.setPassword(passwordEncoder.encode(rawPassword));
         return userRepository.save(user);
     }
 
@@ -52,6 +60,8 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("用户不存在，ID: " + id);
         }
+        // 级联清理：用户-角色 关联
+        userRoleRepository.deleteByUserId(id);
         userRepository.deleteById(id);
     }
 }

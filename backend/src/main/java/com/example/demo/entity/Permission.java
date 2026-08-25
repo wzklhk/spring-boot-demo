@@ -6,36 +6,37 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
+/**
+ * 权限实体（RBAC）—— 对应表 permissions
+ * 权限编码约定：资源:动作，如 user:create / role:delete
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "permissions")
+public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "用户名不能为空")
-    @Column(nullable = false, unique = true)
-    private String username;
+    /** 权限编码，如 user:create，唯一 */
+    @NotBlank(message = "权限编码不能为空")
+    @Column(nullable = false, unique = true, length = 128)
+    private String code;
 
-    @NotBlank(message = "邮箱不能为空")
-    @Email(message = "邮箱格式不正确")
-    @Column(nullable = false)
-    private String email;
+    /** 权限名称，如 创建用户 */
+    @NotBlank(message = "权限名称不能为空")
+    @Column(nullable = false, length = 128)
+    private String name;
 
-    /** 密码（BCrypt 加密存储）。WRITE_ONLY：可接收请求但不参与序列化，永不泄露 */
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(nullable = false, length = 100)
-    private String password;
+    @Column(length = 255)
+    private String description;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

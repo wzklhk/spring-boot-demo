@@ -2,7 +2,9 @@ package com.example.demo.service;
 
 import com.example.demo.entity.User;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.util.List;
 public class UserMyBatisService {
 
     private final UserMapper userMapper;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> findAll() {
         return userMapper.findAll();
@@ -50,6 +54,10 @@ public class UserMyBatisService {
         // MyBatis 不走 JPA 生命周期回调，时间戳需手动填充
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
+        // 密码 BCrypt 加密存储；未传密码时使用默认密码 123456
+        String rawPassword = (user.getPassword() == null || user.getPassword().isBlank())
+                ? "123456" : user.getPassword();
+        user.setPassword(passwordEncoder.encode(rawPassword));
         userMapper.insert(user);
         return user;
     }
@@ -69,6 +77,8 @@ public class UserMyBatisService {
         if (userMapper.findById(id) == null) {
             throw new RuntimeException("用户不存在，ID: " + id);
         }
+        // 级联清理：用户-角色 关联
+        userRoleRepository.deleteByUserId(id);
         userMapper.deleteById(id);
     }
 }

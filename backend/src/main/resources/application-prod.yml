@@ -1,0 +1,38 @@
+# ============================================================
+# 生产环境配置
+# 特点: MySQL + 连接池 + 关闭调试功能 + INFO 日志
+#
+# 数据源连接信息通过环境变量注入（deploy/docker-compose.app.yml 已配置）:
+#   SPRING_DATASOURCE_URL      默认: jdbc:mysql://localhost:3306/springboot_demo
+#   SPRING_DATASOURCE_USERNAME 默认: root
+#   SPRING_DATASOURCE_PASSWORD 默认: root
+# 激活: SPRING_PROFILES_ACTIVE=prod
+# ============================================================
+spring:
+  datasource:
+    url: "${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  web:
+    resources:
+      # 前端静态资源从 jar 外读取（compose 挂载 frontend/dist → /app/frontend），
+      # classpath:/static/ 兜底（jar 内不再打包前端）
+      static-locations: file:/app/frontend/,classpath:/static/
+
+  h2:
+    console:
+      enabled: false      # 生产环境禁用 H2 控制台
+
+  jpa:
+    hibernate:
+      ddl-auto: update    # demo 项目由 JPA 自动建表；正式生产建议改为 validate + 数据库迁移工具
+    show-sql: false
+
+logging:
+  level:
+    com.example.demo: INFO

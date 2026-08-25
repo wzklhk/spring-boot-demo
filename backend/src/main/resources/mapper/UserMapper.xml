@@ -7,12 +7,13 @@
         <id property="id" column="id"/>
         <result property="username" column="username"/>
         <result property="email" column="email"/>
+        <result property="password" column="password"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, username, email, created_at, updated_at
+        id, username, email, password, created_at, updated_at
     </sql>
 
     <select id="findAll" resultMap="UserResultMap">
@@ -46,8 +47,8 @@
 
     <insert id="insert" parameterType="com.example.demo.entity.User"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, email, created_at, updated_at)
-        VALUES (#{username}, #{email}, #{createdAt}, #{updatedAt})
+        INSERT INTO users (username, email, password, created_at, updated_at)
+        VALUES (#{username}, #{email}, #{password}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update" parameterType="com.example.demo.entity.User">

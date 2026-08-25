@@ -1,0 +1,39 @@
+# ============================================================
+# spring-boot-demo — MySQL 8 独立编排（公共组件）
+# 项目名固定 spring-boot-demo（与总入口一致，避免按目录名建新项目）
+#
+# 用法（在 deploy/ 目录执行）:
+#   docker compose -f docker-compose.mysql.yml up -d      启动
+#   docker compose -f docker-compose.mysql.yml down       停止并移除容器
+#   docker compose -f docker-compose.mysql.yml down -v    停止并移除容器 + 删除数据卷
+#
+# 端口: 宿主机 3306 → 容器 3306（标准端口；公共组件，供应用容器/本地开发/其他项目共用）
+# 数据: 命名卷 spring-boot-demo-mysql-data（容器重建不丢数据）
+# ============================================================
+name: spring-boot-demo
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: spring-boot-demo-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: springboot_demo
+      MYSQL_USER: springboot
+      MYSQL_PASSWORD: springboot123
+    ports:
+      - "3306:3306"                        # 标准端口；公共组件，本地开发/其他项目共用
+    volumes:
+      - mysql-data:/var/lib/mysql        # MySQL 数据持久化
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql-data:
+    name: spring-boot-demo-mysql-data
+    external: true    # 外部卷：compose 不管理其生命周期，down -v 也不会删除（数据更安全）

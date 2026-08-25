@@ -1,0 +1,43 @@
+# ============================================================
+# spring-boot-demo — 应用独立编排（prod profile）
+# 项目名固定 spring-boot-demo（与总入口一致，避免按目录名建新项目）
+#
+# 用法（在 deploy/ 目录执行，依赖 MySQL 先就绪）:
+#   docker compose -f docker-compose.app.yml up -d --build  构建并后台启动
+#   docker compose -f docker-compose.app.yml logs -f        跟踪日志
+#   docker compose -f docker-compose.app.yml down           停止并移除容器
+#
+# 通信: 不建共享网络，经宿主机端口连公共组件
+#   host.docker.internal = 宿主机地址（extra_hosts: host-gateway 映射）
+#   MySQL 在宿主机 3306 → jdbc:mysql://host.docker.internal:3306/...
+# 端口: 宿主机 8081 → 容器 8080（生产端口；本地开发用 8080）
+# ============================================================
+name: spring-boot-demo
+
+services:
+  spring-boot-demo:
+    build:
+      context: ..                    # 项目根（Dockerfile 内 COPY 路径相对此）
+      dockerfile: deploy/Dockerfile  # Dockerfile 在 deploy/ 下，相对 context
+    image: spring-boot-demo:latest
+    container_name: spring-boot-demo
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # 容器内访问宿主机（连公共组件用）
+    environment:
+      - TZ=Asia/Shanghai
+      - SPRING_PROFILES_ACTIVE=prod      # 激活生产配置，连 MySQL
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=springboot
+      - SPRING_DATASOURCE_PASSWORD=springboot123
+    volumes:
+      - ../frontend/dist:/app/frontend    # 前端产物挂载（构建: cd frontend && npm run build）
+    healthcheck:
+      # 探测首页 / 而非 /api/users：/api/** 需 JWT（401），wget 会误判为不健康
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

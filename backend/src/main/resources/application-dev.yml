@@ -1,0 +1,37 @@
+# ============================================================
+# 开发环境配置
+# 特点: H2 内存库开箱即用 + SQL 日志全开 + H2 控制台
+# 激活: 默认（未指定 profile 时自动使用），或 SPRING_PROFILES_ACTIVE=dev
+# 前端: vite outDir 为默认 dist/（frontend/dist），Spring 通过 file: 路径直接托管，
+#       起后端即可访问页面；热更新开发仍用 Vite dev server (5173, 代理 /api → 8080)
+# ============================================================
+spring:
+  web:
+    resources:
+      # 相对路径基于后端运行目录（cd backend 后执行 mvnw/spring-boot:run 或 java -jar）
+      static-locations: file:../frontend/dist/,classpath:/static/
+
+  datasource:
+    url: jdbc:h2:mem:demodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # JPA 负责建表，MyBatis 读写同一张表
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.example.demo: DEBUG
+    org.hibernate.SQL: DEBUG
+    com.example.demo.mapper: DEBUG

@@ -1,0 +1,11 @@
+# 构建上下文排除项（避免把本地依赖/构建产物/版本库发送给 Docker daemon）
+.git
+**/target
+frontend/node_modules
+frontend/dist
+backend/src/main/resources/static
+*.log
+.env
+.idea
+.vscode
+*.iml
