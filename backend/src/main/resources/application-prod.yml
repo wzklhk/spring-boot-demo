@@ -7,7 +7,11 @@
 #   SPRING_DATASOURCE_USERNAME 默认: root
 #   SPRING_DATASOURCE_PASSWORD 默认: root
 # 激活: SPRING_PROFILES_ACTIVE=prod
+# 端口: 8080（容器内；Docker 部署宿主机映射 8081 → 8080）
 # ============================================================
+server:
+  port: 8080
+
 spring:
   datasource:
     url: "${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}"

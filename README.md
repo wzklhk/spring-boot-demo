@@ -128,20 +128,20 @@ JPA 与 MyBatis 共享同一 H2 数据源和同一张 `users` 表：
 ### 方式一：开发模式（前后端分离，热更新）
 
 ```bash
-# 终端 1：启动后端（8080）
+# 终端 1：启动后端（dev profile → 9090）
 cd backend
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ./mvnw spring-boot:run
 
-# 终端 2：启动前端 dev server（5173，代理 /api → 8080）
+# 终端 2：启动前端 dev server（5173，代理 /api → 9090）
 cd frontend
 npm install
 npm run dev
 ```
 
-浏览器访问 **http://localhost:5173**，前端请求自动代理到后端，改前端代码即时热更新。**首次访问需注册/登录**（JWT 鉴权，未登录自动跳转登录页）。
+浏览器访问 **http://localhost:5173**，前端请求自动代理到后端（dev 后端端口 **9090**），改前端代码即时热更新。**首次访问需注册/登录**（JWT 鉴权，未登录自动跳转登录页）。
 
-> 也可以不启 Vite dev server：dev profile 的 Spring 直接托管 `frontend/dist`（`static-locations: file:../frontend/dist/`），先 `cd frontend && npm run build` 再只起后端，访问 **http://localhost:8080** 即可看到页面。
+> 也可以不启 Vite dev server：dev profile 的 Spring 直接托管 `frontend/dist`（`static-locations: file:../frontend/dist/`），先 `cd frontend && npm run build` 再只起后端，访问 **http://localhost:9090** 即可看到页面。
 
 ### 方式二：生产模式（单 jar 部署）
 
@@ -171,7 +171,7 @@ java -jar target/spring-boot-demo-1.0.0.jar
 deploy/
 ├── docker-compose.yaml          # 总入口：include 聚合所有组件
 ├── docker-compose.mysql.yml     # MySQL（公共组件，宿主机 3306）
-├── docker-compose.app.yml       # 应用（宿主机 8081）
+├── docker-compose.app.yml       # 应用（宿主机 8080）
 └── Dockerfile                   # 应用多阶段构建（build context = 项目根）
 ```
 
@@ -185,13 +185,13 @@ cd deploy
 docker compose up -d --build
 ```
 
-浏览器访问 **http://localhost:8081**。
+浏览器访问 **http://localhost:8080**。
 
 > 应用容器自动激活 **prod profile**（`static-locations: file:/app/frontend/,classpath:/static/`，前端从挂载卷读取，jar 内不含前端）；MySQL 数据持久化在外部命名卷 `spring-boot-demo-mysql-data`（`external: true`，compose 不管理其生命周期，容器重建不丢数据）。
 >
 > **改前端只需**：`cd frontend && npm run build`，刷新浏览器即生效，无需重建后端镜像/重启容器。
 >
-> **端口规划**：生产宿主机 应用 `8081`（容器内 8080）；MySQL 用标准端口 `3306`（公共组件，本地开发/其他项目共用）；本地开发 后端 `8080`（H2，无数据库端口）/ 前端 Vite `5173`。
+> **端口规划**：生产宿主机 应用 `8080`（容器内 8080）；MySQL 用标准端口 `3306`（公共组件，本地开发/其他项目共用）；本地开发 后端 `9090`（dev profile，H2，无数据库端口）/ 前端 Vite `5173`。
 
 常用命令（在 `deploy/` 目录执行，不写 `-f` 即默认用 `docker-compose.yaml`）：
 
@@ -235,7 +235,7 @@ docker compose -f docker-compose.app.yml down      # 停止应用容器
 - 数据库账号密码为 demo 默认值（`root123` / `springboot123`），正式部署务必在 `deploy/docker-compose.mysql.yml` 中修改
 - 首次构建需下载 Maven 依赖、npm 包与 MySQL 镜像，耗时较长属正常
 - 两个 compose 文件均已配置 `healthcheck`（应用探测首页 `/`，MySQL 探测 `mysqladmin ping`）与 `restart: unless-stopped`
-- 端口冲突时修改对应 compose 文件中 `ports` 的宿主机侧端口（当前生产映射：app `8081:8080`、mysql `3306:3306`）
+- 端口冲突时修改对应 compose 文件中 `ports` 的宿主机侧端口（当前生产映射：app `8080:8080`、mysql `3306:3306`）
 
 ### H2 数据库控制台
 

@@ -8,7 +8,7 @@
 #   3. 默认值:    spring.profiles.default（未指定时用 dev）
 # ============================================================
 server:
-  port: 8080          # 本地开发直跑 8080；Docker 生产宿主机映射 8081（见 docker-compose.yml）
+  port: 8080          # 默认端口；dev profile 显式 9090，prod profile 显式 8080（见各 profile yaml）
 
 spring:
   application:
