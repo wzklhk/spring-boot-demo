@@ -37,5 +37,5 @@ fi
 
 # ---- 启动 ----
 info "启动前端开发服务器 → http://localhost:5173"
-info "(/api 与 /h2-console 将代理到 http://localhost:8080)"
+info "(/api 与 /h2-console 将代理到 http://localhost:9090)"
 exec npm run dev

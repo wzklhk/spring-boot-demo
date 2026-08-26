@@ -72,6 +72,25 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- API 文档: Knife4j (Swagger UI 增强) + springdoc-openapi
+             ⚠️ 版本组合（2026-08 实测踩坑）：
+             - knife4j 4.5.0 默认带 springdoc 2.3.0 → 崩在 Spring 6.2 (SB 3.5): ControllerAdviceBean 构造器被移除
+             - springdoc 2.6.0 → 同样崩（无条件调用旧构造器）
+             - springdoc 2.7+ → 修好 Spring 6.2，但 getGroupConfigs() 签名改/移除 → knife4j 的
+               Knife4jOpenApiCustomizer.addOrderExtension() NoSuchMethodError
+             - 解法: springdoc 2.8.17 + Knife4jCompatConfig 用 @ConditionalOnMissingBean 覆盖
+               Knife4jOpenApiCustomizer（跳过 addOrderExtension，仅影响 UI 排序） -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+            <version>4.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.17</version>
+        </dependency>
+
         <!-- H2 内存数据库（dev profile） -->
         <dependency>
             <groupId>com.h2database</groupId>

@@ -37,6 +37,16 @@ spring:
       ddl-auto: update    # demo 项目由 JPA 自动建表；正式生产建议改为 validate + 数据库迁移工具
     show-sql: false
 
+# 生产环境禁用 API 文档（Knife4j/Swagger）
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+knife4j:
+  enable: false
+
 logging:
   level:
     com.example.demo: INFO

@@ -29,6 +29,7 @@ import java.io.IOException;
  * 放行规则：
  *   - /api/auth/**            注册/登录/登出（无需 token）
  *   - /h2-console/**          H2 控制台（dev）
+ *   - /doc.html 等            Knife4j/Swagger 文档（prod 通过 springdoc.api-docs.enabled=false 整体禁用）
  *   - 静态资源 + SPA 页面      无需 token（页面数据经 /api 携带 token 获取）
  *   - /api/**                 必须携带有效 JWT
  */
@@ -69,6 +70,8 @@ public class SecurityConfig {
                 // 注册/登录/退出 无需 token；注销账号(/api/auth/account)必须已登录
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout").permitAll()
                 .requestMatchers("/h2-console/**",
+                        "/doc.html", "/swagger-ui.html", "/swagger-ui/**",
+                        "/v3/api-docs/**", "/webjars/**",
                         "/", "/index.html", "/assets/**", "/favicon.ico", "/favicon.svg").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()          // SPA 路由（/users 等）交给前端路由，页面本身不鉴权

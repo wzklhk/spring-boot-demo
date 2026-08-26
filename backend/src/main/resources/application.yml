@@ -30,3 +30,18 @@ jwt:
   secret: ${JWT_SECRET:spring-boot-demo-jwt-secret-key-change-me-in-production-2026}
   # token 有效期（秒），默认 24 小时
   expiration: 86400
+
+# API 文档（Knife4j + springdoc-openapi）公共配置；prod 在 application-prod.yml 中整体禁用
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn

@@ -7,10 +7,16 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
+    host: true,
     port: 5173,
     proxy: {
       '/api': 'http://localhost:9090',
-      '/h2-console': 'http://localhost:9090'
+      '/h2-console': 'http://localhost:9090',
+      // Knife4j 文档（也可直接访问后端 http://localhost:9090/doc.html）
+      '/doc.html': 'http://localhost:9090',
+      '/swagger-ui': 'http://localhost:9090',
+      '/v3/api-docs': 'http://localhost:9090',
+      '/webjars': 'http://localhost:9090'
     }
   },
   build: {
