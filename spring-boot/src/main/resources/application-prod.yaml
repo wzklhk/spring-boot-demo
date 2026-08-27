@@ -33,9 +33,13 @@ spring:
       enabled: false      # 生产环境禁用 H2 控制台
 
   jpa:
-    hibernate:
-      ddl-auto: update    # demo 项目由 JPA 自动建表；正式生产建议改为 validate + 数据库迁移工具
+    # 建表由 schema-mysql.sql 脚本完成（主配置 ddl-auto: none），每次启动幂等执行
     show-sql: false
+
+  # 启动时执行建表脚本（主配置 spring.sql.init.mode: always；此处显式指定脚本位置）
+  sql:
+    init:
+      schema-locations: classpath:schema-mysql.sql
 
 # 生产环境禁用 API 文档（Knife4j/Swagger）
 springdoc:
