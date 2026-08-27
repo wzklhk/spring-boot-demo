@@ -39,9 +39,9 @@ build/
 .env
 
 ### Frontend (Vue 3) ###
-frontend/node_modules/
-frontend/dist/
+vue/node_modules/
+vue/dist/
 
-### 前端构建产物（Vite 输出到 backend static，由 Spring Boot 托管） ###
-backend/src/main/resources/static/*
-!backend/src/main/resources/static/.gitkeep
+### 前端构建产物（Vite 输出到 vue/dist，由 Docker 挂载托管，不进 jar） ###
+spring-boot/src/main/resources/static/*
+!spring-boot/src/main/resources/static/.gitkeep

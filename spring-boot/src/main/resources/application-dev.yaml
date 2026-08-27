@@ -3,7 +3,7 @@
 # 特点: H2 内存库开箱即用 + SQL 日志全开 + H2 控制台
 # 激活: 默认（未指定 profile 时自动使用），或 SPRING_PROFILES_ACTIVE=dev
 # 端口: 9090（与 prod 8080 / 容器映射 8081 区分，避免本地冲突）
-# 前端: vite outDir 为默认 dist/（frontend/dist），Spring 通过 file: 路径直接托管，
+# 前端: vite outDir 为默认 dist/（vue/dist），Spring 通过 file: 路径直接托管，
 #       起后端即可访问页面；热更新开发仍用 Vite dev server (5173, 代理 /api → 9090)
 # ============================================================
 server:
@@ -12,8 +12,8 @@ server:
 spring:
   web:
     resources:
-      # 相对路径基于后端运行目录（cd backend 后执行 mvnw/spring-boot:run 或 java -jar）
-      static-locations: file:../frontend/dist/,classpath:/static/
+      # 相对路径基于后端运行目录（cd spring-boot 后执行 mvnw/spring-boot:run 或 java -jar）
+      static-locations: file:../vue/dist/,classpath:/static/
 
   datasource:
     url: jdbc:h2:mem:demodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE

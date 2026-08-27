@@ -19,7 +19,7 @@
 ## 快速开始
 
 ```bash
-cd backend/fastapi-app
+cd fastapi-app
 uv sync            # 安装依赖（或 uv venv && uv pip install -e .）
 uv run python -m app.seed    # 可选：初始化 admin/123456 + RBAC 种子数据
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

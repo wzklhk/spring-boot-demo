@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # ============================================================
 # spring-boot-demo 前端 — 编译脚本
-#   安装依赖（如需要）+ 构建生产包
-#   → backend/src/main/resources/static（由 Spring Boot 单 jar 托管）
+#   npm run build → vue/dist/（生产构建产物）
+#   部署时由 docker-compose 挂载 dist/ → 容器 /app/frontend
+#   （见 deploy/docker-compose.app.yml），改前端只需重新构建，
+#   无需重建后端镜像/重启容器
 #
 # 用法:
 #   ./build.sh         构建生产包
@@ -10,8 +12,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-FRONTEND_DIR="$(pwd)"
-BACKEND_STATIC="$FRONTEND_DIR/../backend/src/main/resources/static"
+VUE_DIR="$(pwd)"
+DIST_DIR="$VUE_DIR/dist"
 
 # ---- 颜色 ----
 RED='\033[0;31m'
@@ -44,10 +46,10 @@ fi
 # ---- 构建 ----
 info "开始编译 (npm run build)..."
 npm run build
-ok "构建完成 → $BACKEND_STATIC/"
+ok "构建完成 → $DIST_DIR/"
 
-if [ ! -f "$BACKEND_STATIC/index.html" ]; then
-    warn "未找到 $BACKEND_STATIC/index.html，请检查 vite 配置"
+if [ ! -f "$DIST_DIR/index.html" ]; then
+    warn "未找到 $DIST_DIR/index.html，请检查 vite 配置"
     exit 1
 fi
-ok "index.html 已就位，重新打包后端 jar 后即可生效"
+ok "index.html 已就位；部署时 compose 会挂载 $DIST_DIR → 容器 /app/frontend"
