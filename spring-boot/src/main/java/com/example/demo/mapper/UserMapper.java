@@ -7,10 +7,11 @@ import java.util.List;
 
 /**
  * MyBatis Mapper —— 与 JPA 的 UserRepository 共存，操作同一张 users 表。
- * SQL 定义见 src/main/resources/mapper/UserMapper.xml
+ * 继承 BaseMapper 获得统一 CRUD + 分页契约（SQL 见 src/main/resources/mapper/UserMapper.xml）。
  */
-public interface UserMapper {
+public interface UserMapper extends BaseMapper<User> {
 
+    /** 全量查询（部分内部场景仍需要） */
     List<User> findAll();
 
     User findById(@Param("id") Long id);
@@ -20,10 +21,4 @@ public interface UserMapper {
     int countByUsername(@Param("username") String username);
 
     int countByEmail(@Param("email") String email);
-
-    int insert(User user);
-
-    int update(User user);
-
-    int deleteById(@Param("id") Long id);
 }

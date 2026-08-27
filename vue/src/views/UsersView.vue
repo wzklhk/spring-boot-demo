@@ -32,6 +32,17 @@
           <el-empty description="暂无用户，点击右上角「新建用户」创建" :image-size="80" />
         </template>
       </el-table>
+
+      <el-pagination
+        v-model:current-page="page"
+        v-model:page-size="pageSize"
+        :total="total"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
+        class="pager"
+        @size-change="handleSizeChange"
+        @current-change="fetchUsers"
+      />
     </el-card>
 
     <!-- 新建/编辑对话框 -->
@@ -68,6 +79,9 @@ import { createUser, deleteUser, listUsers, updateUser } from '../api/user'
 const PREFIX = ''
 
 const users = ref([])
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 const loading = ref(false)
 const dialogVisible = ref(false)
 const submitting = ref(false)
@@ -86,12 +100,19 @@ const rules = {
 async function fetchUsers() {
   loading.value = true
   try {
-    users.value = await listUsers(PREFIX)
+    const data = await listUsers(PREFIX, page.value, pageSize.value)
+    users.value = data.list
+    total.value = data.total
   } catch (e) {
     ElMessage.error(e.message)
   } finally {
     loading.value = false
   }
+}
+
+function handleSizeChange() {
+  page.value = 1
+  fetchUsers()
 }
 
 function openCreate() {
@@ -184,5 +205,10 @@ onMounted(fetchUsers)
 
 .table-card {
   border-radius: 10px;
+}
+
+.pager {
+  margin-top: 16px;
+  justify-content: flex-end;
 }
 </style>

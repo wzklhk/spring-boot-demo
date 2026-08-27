@@ -23,6 +23,26 @@
         ORDER BY id
     </select>
 
+    <!-- ===== BaseMapper 统一方法 ===== -->
+    <select id="selectPage" resultMap="UserResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        ORDER BY id
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM users
+    </select>
+
+    <select id="selectById" resultMap="UserResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE id = #{id}
+    </select>
+
     <select id="findById" resultMap="UserResultMap">
         SELECT
         <include refid="Base_Column_List"/>

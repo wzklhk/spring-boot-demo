@@ -36,6 +36,7 @@ spring-boot-demo/
 │       │   ├── java/com/example/demo/
 │       │   │   ├── DemoApplication.java            # 启动类（@MapperScan）
 │       │   │   ├── common/Result.java              # 统一响应包装 {code, message, data, errors}
+│       │   │   ├── common/PageResult.java          # 统一分页响应 {list, total, page, size, pages}
 │       │   │   ├── auth/                           # JWT 认证（Spring Security）
 │       │   │   │   ├── AuthController.java         # 注册/登录/退出/注销账号
 │       │   │   │   ├── SecurityConfig.java         # 安全配置（BCrypt/放行规则/401 JSON）
@@ -278,13 +279,17 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## API 接口
 
+**统一 CRUD 基类**：`controller/BaseController` → `service/BaseService(+BaseServiceImpl)` → `mapper/BaseMapper` 三层泛型基类，所有实体接口（users / roles / permissions / mybatis users）均继承自它，自动获得统一的 CRUD 端点与分页查询。
+
+**列表查询默认分页**：所有返回多条数据的查询接口默认分页——`page` 从 1 起（缺省第 1 页）、`size` 每页条数（缺省 10），响应 `{list, total, page, size, pages}`（外层仍是 `Result` 包装），如 `GET /api/users?page=2&size=5`。
+
 两套等价接口：`/api/users`（JPA）与 `/api/mybatis/users`（MyBatis），统一响应格式 `{code, message, data}`。
 
 | 方法 | JPA 路径 | MyBatis 路径 | 说明 |
 |------|----------|--------------|------|
-| GET | `/api/users` | `/api/mybatis/users` | 查询所有用户 |
+| GET | `/api/users` | `/api/mybatis/users` | 分页查询用户（`?page=1&size=10`，缺省第 1 页 10 条） |
 | GET | `/api/users/{id}` | `/api/mybatis/users/{id}` | 按 ID 查询 |
-| GET | - | `/api/mybatis/users/username/{username}` | 按用户名查询（MyBatis 专属） |
+| GET | - | `/api/mybatis/users/username/{username}` | 按用户名查询（MyBatis 专属，单条返回） |
 | POST | `/api/users` | `/api/mybatis/users` | 创建用户 `{username, email}` |
 | PUT | `/api/users/{id}` | `/api/mybatis/users/{id}` | 更新用户 |
 | DELETE | `/api/users/{id}` | `/api/mybatis/users/{id}` | 删除用户（级联清理用户-角色） |

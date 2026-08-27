@@ -4,57 +4,64 @@ import com.example.demo.entity.Role;
 import com.example.demo.repository.RolePermissionRepository;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRoleRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.demo.service.impl.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+/**
+ * 角色业务（RBAC）—— 继承 BaseServiceImpl 获得统一 CRUD + 分页；
+ * 覆写 create/update/delete 保持原有特殊逻辑（编码/名称唯一校验、级联清理）。
+ */
 @Service
-@RequiredArgsConstructor
-public class RoleService {
+public class RoleService extends BaseServiceImpl<Role, Long, RoleRepository> {
 
-    private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final RolePermissionRepository rolePermissionRepository;
 
-    public List<Role> findAll() {
-        return roleRepository.findAll();
+    public RoleService(RoleRepository roleRepository,
+                       UserRoleRepository userRoleRepository,
+                       RolePermissionRepository rolePermissionRepository) {
+        super(roleRepository);
+        this.userRoleRepository = userRoleRepository;
+        this.rolePermissionRepository = rolePermissionRepository;
     }
 
-    public Role findById(Long id) {
-        return roleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("角色不存在，ID: " + id));
+    @Override
+    protected String entityName() {
+        return "角色";
     }
 
+    @Override
     @Transactional
     public Role create(Role role) {
-        if (roleRepository.existsByCode(role.getCode())) {
+        if (repository.existsByCode(role.getCode())) {
             throw new RuntimeException("角色编码已存在: " + role.getCode());
         }
-        if (roleRepository.existsByName(role.getName())) {
+        if (repository.existsByName(role.getName())) {
             throw new RuntimeException("角色名称已存在: " + role.getName());
         }
-        return roleRepository.save(role);
+        return repository.save(role);
     }
 
+    @Override
     @Transactional
     public Role update(Long id, Role role) {
-        Role existing = findById(id);
+        Role existing = getById(id);
         existing.setCode(role.getCode());
         existing.setName(role.getName());
         existing.setDescription(role.getDescription());
-        return roleRepository.save(existing);
+        return repository.save(existing);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
-        if (!roleRepository.existsById(id)) {
+        if (!repository.existsById(id)) {
             throw new RuntimeException("角色不存在，ID: " + id);
         }
         // 级联清理：用户-角色、角色-权限 关联
         userRoleRepository.deleteByRoleId(id);
         rolePermissionRepository.deleteByRoleId(id);
-        roleRepository.deleteById(id);
+        repository.deleteById(id);
     }
 }

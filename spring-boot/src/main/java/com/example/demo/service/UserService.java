@@ -3,65 +3,73 @@ package com.example.demo.service;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UserRoleRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.demo.service.impl.BaseServiceImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+/**
+ * 用户业务（JPA 版）—— 继承 BaseServiceImpl 获得统一 CRUD + 分页；
+ * 覆写 create/update/delete 保持原有特殊逻辑（密码加密、唯一性校验、级联清理）。
+ */
 @Service
-@RequiredArgsConstructor
-public class UserService {
+public class UserService extends BaseServiceImpl<User, Long, UserRepository> {
 
-    private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public UserService(UserRepository userRepository,
+                       UserRoleRepository userRoleRepository,
+                       PasswordEncoder passwordEncoder) {
+        super(userRepository);
+        this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("用户不存在，ID: " + id));
+    @Override
+    protected String entityName() {
+        return "用户";
     }
 
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
+        return repository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("用户不存在，用户名: " + username));
     }
 
+    @Override
     @Transactional
     public User create(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
+        if (repository.existsByUsername(user.getUsername())) {
             throw new RuntimeException("用户名已存在: " + user.getUsername());
         }
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (repository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("邮箱已被注册: " + user.getEmail());
         }
         // 密码 BCrypt 加密存储；未传密码时使用默认密码 123456
         String rawPassword = (user.getPassword() == null || user.getPassword().isBlank())
                 ? "123456" : user.getPassword();
         user.setPassword(passwordEncoder.encode(rawPassword));
-        return userRepository.save(user);
+        return repository.save(user);
     }
 
+    @Override
     @Transactional
     public User update(Long id, User user) {
-        User existing = findById(id);
+        User existing = getById(id);
+        // 密码不允许通过更新接口修改，仅更新基础资料
         existing.setUsername(user.getUsername());
         existing.setEmail(user.getEmail());
-        return userRepository.save(existing);
+        return repository.save(existing);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
-        if (!userRepository.existsById(id)) {
+        if (!repository.existsById(id)) {
             throw new RuntimeException("用户不存在，ID: " + id);
         }
         // 级联清理：用户-角色 关联
         userRoleRepository.deleteByUserId(id);
-        userRepository.deleteById(id);
+        repository.deleteById(id);
     }
 }

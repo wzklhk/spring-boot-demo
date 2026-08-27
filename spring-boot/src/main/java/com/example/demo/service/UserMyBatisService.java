@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.common.PageResult;
 import com.example.demo.entity.User;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRoleRepository;
@@ -14,17 +15,33 @@ import java.util.List;
 /**
  * MyBatis 版 UserService —— 与 JPA 版 UserService 功能等价，
  * 但走 UserMapper（XML SQL），与 JPA 共享同一张 users 表。
+ * 实现统一 BaseService 接口，供 BaseController 无差别调用。
  */
 @Service
 @RequiredArgsConstructor
-public class UserMyBatisService {
+public class UserMyBatisService implements BaseService<User, Long> {
 
     private final UserMapper userMapper;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** 全量查询（部分内部场景仍需要） */
     public List<User> findAll() {
         return userMapper.findAll();
+    }
+
+    @Override
+    public PageResult<User> page(int page, int size) {
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.max(size, 1);
+        long total = userMapper.count();
+        List<User> list = userMapper.selectPage((safePage - 1) * safeSize, safeSize);
+        return PageResult.of(list, total, safePage, safeSize);
+    }
+
+    @Override
+    public User getById(Long id) {
+        return findById(id);
     }
 
     public User findById(Long id) {
@@ -43,6 +60,7 @@ public class UserMyBatisService {
         return user;
     }
 
+    @Override
     @Transactional
     public User create(User user) {
         if (userMapper.countByUsername(user.getUsername()) > 0) {
@@ -62,6 +80,7 @@ public class UserMyBatisService {
         return user;
     }
 
+    @Override
     @Transactional
     public User update(Long id, User user) {
         User existing = findById(id);
@@ -72,6 +91,7 @@ public class UserMyBatisService {
         return existing;
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         if (userMapper.findById(id) == null) {

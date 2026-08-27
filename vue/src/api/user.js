@@ -41,8 +41,9 @@ http.interceptors.response.use(
 )
 
 // prefix: '' = JPA 版 (/api/users)，'/mybatis' = MyBatis 版 (/api/mybatis/users)
-export function listUsers(prefix = '') {
-  return http.get(`${prefix}/users`)
+// 列表接口默认分页：page 从 1 起，size 默认 10，返回 { list, total, page, size, pages }
+export function listUsers(prefix = '', page = 1, size = 10) {
+  return http.get(`${prefix}/users`, { params: { page, size } })
 }
 
 export function getUserById(prefix, id) {
