@@ -40,28 +40,28 @@ http.interceptors.response.use(
   }
 )
 
-// prefix: '' = JPA 版 (/api/users)，'/mybatis' = MyBatis 版 (/api/mybatis/users)
+// 统一用户接口 /api/users（Service 多态，默认 MyBatis 实现，前端无感知）
 // 列表接口默认分页：page 从 1 起，size 默认 10，返回 { list, total, page, size, pages }
-export function listUsers(prefix = '', page = 1, size = 10) {
-  return http.get(`${prefix}/users`, { params: { page, size } })
+export function listUsers(page = 1, size = 10) {
+  return http.get('/users', { params: { page, size } })
 }
 
-export function getUserById(prefix, id) {
-  return http.get(`${prefix}/users/${id}`)
+export function getUserById(id) {
+  return http.get(`/users/${id}`)
 }
 
 export function getUserByUsername(username) {
-  return http.get(`/mybatis/users/username/${username}`)
+  return http.get(`/users/username/${username}`)
 }
 
-export function createUser(prefix, data) {
-  return http.post(`${prefix}/users`, data)
+export function createUser(data) {
+  return http.post('/users', data)
 }
 
-export function updateUser(prefix, id, data) {
-  return http.put(`${prefix}/users/${id}`, data)
+export function updateUser(id, data) {
+  return http.put(`/users/${id}`, data)
 }
 
-export function deleteUser(prefix, id) {
-  return http.delete(`${prefix}/users/${id}`)
+export function deleteUser(id) {
+  return http.delete(`/users/${id}`)
 }

@@ -1,10 +1,12 @@
-package com.example.demo.service;
+package com.example.demo.service.impl;
 
 import com.example.demo.common.PageResult;
 import com.example.demo.entity.User;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRoleRepository;
+import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,13 +15,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * MyBatis 版 UserService —— 与 JPA 版 UserService 功能等价，
- * 但走 UserMapper（XML SQL），与 JPA 共享同一张 users 表。
- * 实现统一 BaseService 接口，供 BaseController 无差别调用。
+ * 用户服务 MyBatis 实现（默认）—— 走 UserMapper（XML SQL），与 JPA 共享同一张 users 表。
+ * {@link Primary} 使其成为 UserService 接口注入的默认实现（Controller/Auth 无感知切换）。
  */
 @Service
+@Primary
 @RequiredArgsConstructor
-public class UserMyBatisService implements BaseService<User, Long> {
+public class UserMyBatisServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final UserRoleRepository userRoleRepository;
@@ -52,6 +54,7 @@ public class UserMyBatisService implements BaseService<User, Long> {
         return user;
     }
 
+    @Override
     public User findByUsername(String username) {
         User user = userMapper.findByUsername(username);
         if (user == null) {

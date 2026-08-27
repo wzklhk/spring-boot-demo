@@ -48,11 +48,7 @@
           </el-menu-item>
           <el-menu-item index="/users">
             <el-icon><User /></el-icon>
-            <span>用户管理（JPA）</span>
-          </el-menu-item>
-          <el-menu-item index="/mybatis-users">
-            <el-icon><DataAnalysis /></el-icon>
-            <span>用户管理（MyBatis）</span>
+            <span>用户管理</span>
           </el-menu-item>
         </el-menu>
       </el-aside>

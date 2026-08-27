@@ -12,6 +12,24 @@
     </div>
 
     <el-card shadow="never" class="table-card">
+      <!-- 按用户名精确查询（单条返回） -->
+      <div class="search-bar">
+        <el-input
+          v-model="searchUsername"
+          placeholder="输入用户名精确查询"
+          clearable
+          style="width: 260px"
+          @keyup.enter="handleSearch"
+          @clear="fetchUsers"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+        <el-button type="primary" plain @click="handleSearch">查询</el-button>
+        <el-button v-if="searching" @click="resetSearch">显示全部</el-button>
+      </div>
+
       <el-table :data="users" v-loading="loading" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="username" label="用户名" min-width="140" />
@@ -33,7 +51,9 @@
         </template>
       </el-table>
 
+      <!-- 精确搜索时不分页，展示单条结果 -->
       <el-pagination
+        v-if="!searching"
         v-model:current-page="page"
         v-model:page-size="pageSize"
         :total="total"
@@ -73,10 +93,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { createUser, deleteUser, listUsers, updateUser } from '../api/user'
-
-// JPA 版接口前缀为空（/api/users）
-const PREFIX = ''
+import { createUser, deleteUser, getUserByUsername, listUsers, updateUser } from '../api/user'
 
 const users = ref([])
 const page = ref(1)
@@ -86,6 +103,8 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
+const searchUsername = ref('')
+const searching = ref(false)
 
 const form = reactive({ id: null, username: '', email: '' })
 
@@ -100,7 +119,7 @@ const rules = {
 async function fetchUsers() {
   loading.value = true
   try {
-    const data = await listUsers(PREFIX, page.value, pageSize.value)
+    const data = await listUsers(page.value, pageSize.value)
     users.value = data.list
     total.value = data.total
   } catch (e) {
@@ -112,6 +131,31 @@ async function fetchUsers() {
 
 function handleSizeChange() {
   page.value = 1
+  fetchUsers()
+}
+
+async function handleSearch() {
+  const name = searchUsername.value.trim()
+  if (!name) {
+    ElMessage.warning('请输入要查询的用户名')
+    return
+  }
+  loading.value = true
+  try {
+    const user = await getUserByUsername(name)
+    users.value = user ? [user] : []
+    searching.value = true
+    if (!user) ElMessage.info('未找到该用户')
+  } catch (e) {
+    ElMessage.error(e.message)
+  } finally {
+    loading.value = false
+  }
+}
+
+function resetSearch() {
+  searchUsername.value = ''
+  searching.value = false
   fetchUsers()
 }
 
@@ -134,13 +178,15 @@ async function handleSubmit() {
   submitting.value = true
   try {
     if (form.id) {
-      await updateUser(PREFIX, form.id, { username: form.username, email: form.email })
+      await updateUser(form.id, { username: form.username, email: form.email })
       ElMessage.success('更新成功')
     } else {
-      await createUser(PREFIX, { username: form.username, email: form.email })
+      await createUser({ username: form.username, email: form.email })
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
+    searching.value = false
+    searchUsername.value = ''
     await fetchUsers()
   } catch (e) {
     ElMessage.error(e.message)
@@ -160,9 +206,13 @@ async function handleDelete(row) {
     return // 用户取消
   }
   try {
-    await deleteUser(PREFIX, row.id)
+    await deleteUser(row.id)
     ElMessage.success('删除成功')
-    await fetchUsers()
+    if (searching.value && searchUsername.value.trim()) {
+      await handleSearch()
+    } else {
+      await fetchUsers()
+    }
   } catch (e) {
     ElMessage.error(e.message)
   }
@@ -210,5 +260,11 @@ onMounted(fetchUsers)
 .pager {
   margin-top: 16px;
   justify-content: flex-end;
+}
+
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 </style>

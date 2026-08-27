@@ -10,11 +10,7 @@
       <div class="hero-actions">
         <el-button type="primary" size="large" round @click="$router.push('/users')">
           <el-icon style="margin-right: 6px"><User /></el-icon>
-          JPA 用户管理
-        </el-button>
-        <el-button size="large" round @click="$router.push('/mybatis-users')">
-          <el-icon style="margin-right: 6px"><DataAnalysis /></el-icon>
-          MyBatis 用户管理
+          用户管理
         </el-button>
       </div>
     </div>
@@ -43,9 +39,9 @@
         </div>
       </template>
       <ul class="dual-list">
-        <li>JPA 负责建表（<code>ddl-auto: update</code>），接口前缀 <code>/api/users</code></li>
-        <li>MyBatis 通过 XML Mapper 读写同一张 <code>users</code> 表，接口前缀 <code>/api/mybatis/users</code></li>
-        <li>两套 API 功能等价，可交叉验证：JPA 写入的数据 MyBatis 能读到，反之亦然</li>
+        <li>Service 面向接口（<code>UserService</code>），默认注入 MyBatis 实现（<code>@Primary</code>），JPA 实现可 <code>@Qualifier</code> 切换</li>
+        <li>Controller 不区分持久层：统一 <code>/api/users</code>，列表查询默认分页（第 1 页 10 条）</li>
+        <li>JPA 负责建表（<code>ddl-auto: update</code>），MyBatis 通过 XML Mapper 读写同一张 <code>users</code> 表</li>
         <li>事务统一由 Spring 管理（<code>@Transactional</code> 同时覆盖两套持久层）</li>
       </ul>
     </el-card>
@@ -67,7 +63,7 @@ const techCards = [
   {
     title: '双持久层共存',
     icon: 'Coin',
-    desc: 'Spring Data JPA 与 MyBatis 3.0.4 共享同一 H2 数据源与 users 表，两套等价接口便于对比学习。'
+    desc: 'Service 接口多态：默认 MyBatis 实现（@Primary），JPA 实现 @Qualifier 可切，共享同一 users 表。'
   }
 ]
 </script>

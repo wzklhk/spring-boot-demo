@@ -11,11 +11,6 @@ const router = createRouter({
       path: '/users',
       name: 'users',
       component: () => import('../views/UsersView.vue')
-    },
-    {
-      path: '/mybatis-users',
-      name: 'mybatis-users',
-      component: () => import('../views/MybatisUsersView.vue')
     }
   ]
 })
