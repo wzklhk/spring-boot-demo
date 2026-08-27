@@ -111,6 +111,16 @@ class UserApiTests {
         assertEquals(404, resp.getStatusCode().value(), "旧 /api/mybatis/users 路由应已下线");
     }
 
+    /** 种子数据：data.sql 初始化的 admin / 123456 应可登录（验证 BCrypt hash + 幂等插入） */
+    @Test
+    void adminSeedUserCanLogin() {
+        ResponseEntity<Map> resp = rest.postForEntity("/api/auth/login",
+                Map.of("username", "admin", "password", "123456"), Map.class);
+        assertEquals(200, resp.getBody().get("code"), "种子 admin 用户应可登录");
+        Map data = (Map) resp.getBody().get("data");
+        assertNotNull(data.get("token"));
+    }
+
     private HttpHeaders authHeaders(Token token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token.value());

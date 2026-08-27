@@ -16,15 +16,17 @@ spring:
   profiles:
     default: dev          # 未显式激活 profile 时，默认走开发环境（H2）
   # 建表策略：不使用 JPA 自动建表（ddl-auto: none）
-  # 由 spring.sql.init 在应用启动时执行 classpath:schema-{platform}.sql 建表脚本（幂等，IF NOT EXISTS）
-  #   - H2（dev/测试）:    schema-h2.sql
-  #   - MySQL（prod）:     schema-mysql.sql
+  # 由 spring.sql.init 在启动时执行建表与种子数据脚本（幂等）：
+  #   schema.sql 建表（H2 经 MODE=MySQL 兼容模式执行同一份 MySQL 方言脚本）
+  #   data.sql   默认管理员种子（admin / 123456）
   jpa:
     hibernate:
       ddl-auto: none
   sql:
     init:
       mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
 
 # MyBatis 配置（与 JPA 共存，共享同一数据源）
 mybatis:

@@ -16,7 +16,8 @@ spring:
       static-locations: file:../vue/dist/,classpath:/static/
 
   datasource:
-    url: jdbc:h2:mem:demodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    # MODE=MySQL: H2 以 MySQL 兼容模式运行，schema.sql（MySQL 方言）一份脚本通吃 dev/prod
+    url: jdbc:h2:mem:demodb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -27,16 +28,11 @@ spring:
       path: /h2-console
 
   jpa:
-    # 建表由 schema-h2.sql 脚本完成（主配置 ddl-auto: none），此处仅保留 SQL 日志
+    # 建表/种子数据由 schema.sql + data.sql 完成（主配置 ddl-auto: none），此处仅保留 SQL 日志
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-
-  # 启动时执行建表脚本（主配置 spring.sql.init.mode: always；此处显式指定脚本位置）
-  sql:
-    init:
-      schema-locations: classpath:schema-h2.sql
 
 logging:
   level:
