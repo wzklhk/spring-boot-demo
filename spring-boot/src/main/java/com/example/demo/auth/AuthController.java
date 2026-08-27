@@ -6,6 +6,8 @@ import com.example.demo.auth.vo.AuthResponse;
 import com.example.demo.common.Result;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +22,11 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 认证接口：注册 / 登录 / 退出 / 注销账号
  * - 密码统一 BCrypt 加密存储（见 UserService）
- * - 登录/注册成功返回 JWT token，前端后续请求头携带 Authorization: Bearer <token>
+ * - 登录/注册成功返回 JWT token，前端后续请求头携带 Authorization: Bearer ***
  */
+@Tag(name = "认证管理",
+        description = "注册 / 登录 / 退出 / 注销。\n"
+                + "登录或注册成功返回 JWT token；后续请求头携带 Authorization: Bearer {token} 即可访问 /api/** 接口")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -33,6 +38,7 @@ public class AuthController {
 
     /** 注册用户（密码 BCrypt 加密存储），注册成功直接返回 token（注册即登录） */
     @PostMapping("/register")
+    @Operation(summary = "注册用户", description = "注册成功直接返回 JWT token（注册即登录）")
     public ResponseEntity<Result<AuthResponse>> register(@Valid @RequestBody RegisterRequest req) {
         User user = User.builder()
                 .username(req.getUsername())
@@ -47,6 +53,7 @@ public class AuthController {
 
     /** 登录：校验用户名密码，成功返回 token */
     @PostMapping("/login")
+    @Operation(summary = "用户登录", description = "校验用户名密码，成功返回 JWT token")
     public ResponseEntity<Result<AuthResponse>> login(@Valid @RequestBody LoginRequest req) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword()));
@@ -57,6 +64,7 @@ public class AuthController {
 
     /** 退出登录：token 加入黑名单，立即失效 */
     @PostMapping("/logout")
+    @Operation(summary = "退出登录", description = "当前请求携带的 token 加入黑名单，立即失效")
     public ResponseEntity<Result<Void>> logout(HttpServletRequest request) {
         String token = extractBearerToken(request);
         if (token != null) {
@@ -67,6 +75,7 @@ public class AuthController {
 
     /** 注销账号：删除当前登录用户（含角色关联级联清理） */
     @DeleteMapping("/account")
+    @Operation(summary = "注销账号", description = "删除当前登录用户（含角色关联级联清理），需携带有效 token")
     public ResponseEntity<Result<Void>> deleteAccount() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.findByUsername(authentication.getName());
