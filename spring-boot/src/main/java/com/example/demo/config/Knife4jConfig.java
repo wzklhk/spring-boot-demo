@@ -43,18 +43,11 @@ public class Knife4jConfig {
 
     @Bean
     public GroupedOpenApi userManagementApi() {
+        // ⚠️ 分组名不能含 "/" —— Knife4j 会把 /v3/api-docs/{group} 拼成多段路径导致 404（已踩坑）
+        // 路径模式 /api/users/** 同时覆盖 RbacController 的子资源路径（/api/users/{userId}/roles 等）
         return GroupedOpenApi.builder()
-                .group("2-用户/权限管理")
+                .group("2-用户与权限管理")
                 .pathsToMatch("/api/users/**", "/api/roles/**", "/api/permissions/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi otherApi() {
-        return GroupedOpenApi.builder()
-                .group("3-其他")
-                .pathsToMatch("/api/**")
-                .pathsToExclude("/api/auth/**", "/api/users/**", "/api/roles/**", "/api/permissions/**")
                 .build();
     }
 }

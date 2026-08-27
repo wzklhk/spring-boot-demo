@@ -64,6 +64,24 @@ class Knife4jDocsTests {
         }
     }
 
+    /** 分组接口 /v3/api-docs/{group} 可直接访问（Knife4j UI 依赖），分组名不含 "/" */
+    @Test
+    void namedGroupApiDocsAreAccessible() throws Exception {
+        for (String group : List.of("1-认证模块", "2-用户与权限管理")) {
+            ResponseEntity<String> resp = rest.exchange(
+                    "/v3/api-docs/" + group, HttpMethod.GET, null, String.class);
+            assertEquals(200, resp.getStatusCode().value(), "分组 /v3/api-docs/" + group + " 应可访问");
+            JsonNode root = mapper.readTree(resp.getBody());
+            assertTrue(root.path("paths").size() > 0, "分组 " + group + " 应包含接口");
+        }
+        // RBAC 子资源路径归属"2-用户与权限管理"组（/api/users/** 模式覆盖）
+        ResponseEntity<String> resp = rest.exchange(
+                "/v3/api-docs/2-用户与权限管理", HttpMethod.GET, null, String.class);
+        JsonNode paths = mapper.readTree(resp.getBody()).path("paths");
+        assertTrue(paths.has("/api/users/{userId}/roles"), "RBAC 子资源路径应在用户与权限管理组内");
+        assertTrue(paths.has("/api/users/{userId}/permissions"), "聚合查询路径应在用户与权限管理组内");
+    }
+
     @Test
     void operationsCarrySummaryDescriptions() throws Exception {
         ResponseEntity<String> resp = rest.exchange("/v3/api-docs", HttpMethod.GET, null, String.class);
