@@ -3,9 +3,9 @@
 # 项目名固定 spring-boot-demo（与总入口一致，避免按目录名建新项目）
 #
 # 用法（在 deploy/ 目录执行，依赖 MySQL 先就绪）:
-#   docker compose -f docker-compose.app.yml up -d --build  构建并后台启动
-#   docker compose -f docker-compose.app.yml logs -f        跟踪日志
-#   docker compose -f docker-compose.app.yml down           停止并移除容器
+#   docker compose -f docker-compose.app.yaml up -d --build  构建并后台启动
+#   docker compose -f docker-compose.app.yaml logs -f        跟踪日志
+#   docker compose -f docker-compose.app.yaml down           停止并移除容器
 #
 # 通信: 不建共享网络，经宿主机端口连公共组件
 #   host.docker.internal = 宿主机地址（extra_hosts: host-gateway 映射）

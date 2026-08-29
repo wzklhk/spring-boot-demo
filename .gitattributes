@@ -1,0 +1,9 @@
+# 统一文本换行符策略：
+#   - 文本文件默认 text=auto（索引统一 LF，工作区按平台）
+#   - shell 脚本（含 mvnw）在任意平台 checkout 均为 LF —— Linux/Docker 直接可执行，
+#     避免 Windows 上 autocrlf 把 shebang 变成 "#!/bin/sh\r" 导致 "not found"
+#   - Windows 批处理保留 CRLF（cmd.exe 兼容）
+* text=auto
+*.sh text eol=lf
+mvnw text eol=lf
+*.cmd text eol=crlf

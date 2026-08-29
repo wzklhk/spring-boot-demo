@@ -1,9 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { isLoggedIn } from '../utils/auth'
 
 const router = createRouter({
-  history: createWebHistory(),
+  // hash 模式（URL 形如 /#/users）：无需服务器端 history 回退，
+  // 前端产物由 Spring 以静态文件托管时深链接也不会 404
+  history: createWebHashHistory(),
   routes: [
     { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true } },
     { path: '/', name: 'home', component: HomeView },

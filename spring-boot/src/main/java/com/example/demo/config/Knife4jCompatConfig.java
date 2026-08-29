@@ -7,6 +7,7 @@ import com.github.xiaoymin.knife4j.spring.extension.Knife4jOpenApiCustomizer;
 import com.github.xiaoymin.knife4j.spring.extension.OpenApiExtensionResolver;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.springdoc.core.properties.SpringDocConfigProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +27,10 @@ import java.util.Map;
  * （其作用只是按 @ApiSupport(order) 给 tag 加 x-order 排序，跳过只影响 UI 排序）。
  */
 @Configuration
+// 仅当 knife4j 启用时才注入该兼容层（prod 中 knife4j.enable=false → 整个配置跳过）：
+// 否则 Knife4jProperties bean 不存在（knife4j 自动配置按 knife4j.enable 条件装配），
+// 这里无条件依赖它会直接导致 prod 启动失败（APPLICATION FAILED TO START）
+@ConditionalOnProperty(name = "knife4j.enable", havingValue = "true", matchIfMissing = true)
 public class Knife4jCompatConfig {
 
     @Bean

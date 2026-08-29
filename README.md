@@ -11,7 +11,7 @@
 | 端 | 技术 | 版本 | 说明 |
 |----|------|------|------|
 | 后端 | Spring Boot | 3.5.16 | 基于 Jakarta EE，需 Java 21 |
-| 后端 | Spring Data JPA | - | ORM 框架，负责建表 |
+| 后端 | Spring Data JPA | - | ORM 框架（建表由 schema.sql 负责，见下） |
 | 后端 | MyBatis | 3.0.4 | SQL Mapper 框架，与 JPA 共存 |
 | 后端 | H2 Database | - | 内存数据库（dev profile，开箱即用） |
 | 后端 | MySQL | 8.x | 生产数据库（prod profile，Docker 部署自带） |
@@ -26,94 +26,21 @@
 
 ```
 spring-boot-demo/
-├── spring-boot/                      # Spring Boot 后端（Java 21）
-│   ├── pom.xml                       # Maven 配置
-│   ├── mvnw / mvnw.cmd               # Maven Wrapper
-│   ├── .mvn/wrapper/
-│   ├── start.sh                      # 编译 & 启动脚本
-│   └── src/
-│       ├── main/
-│       │   ├── java/com/example/demo/
-│       │   │   ├── DemoApplication.java            # 启动类（@MapperScan）
-│       │   │   ├── common/Result.java              # 统一响应包装 {code, message, data, errors}
-│       │   │   ├── common/PageResult.java          # 统一分页响应 {list, total, page, size, pages}
-│       │   │   ├── auth/                           # JWT 认证（Spring Security）
-│       │   │   │   ├── AuthController.java         # 注册/登录/退出/注销账号
-│       │   │   │   ├── SecurityConfig.java         # 安全配置（BCrypt/放行规则/401 JSON）
-│       │   │   │   ├── JwtService.java             # JWT 生成/解析/黑名单
-│       │   │   │   ├── JwtAuthenticationFilter.java
-│       │   │   │   ├── CustomUserDetailsService.java
-│       │   │   │   ├── dto/                        # LoginRequest / RegisterRequest
-│       │   │   │   └── vo/AuthResponse.java        # {token, user} 响应
-│       │   │   ├── controller/
-│       │   │   │   ├── UserController.java         # 用户接口（JPA 版）
-│       │   │   │   ├── MyBatisUserController.java  # 用户接口（MyBatis 版）
-│       │   │   │   ├── RoleController.java         # 角色 CRUD（RBAC）
-│       │   │   │   ├── PermissionController.java   # 权限 CRUD（RBAC）
-│       │   │   │   └── RbacController.java         # 用户-角色/角色-权限/聚合查询（RBAC）
-│       │   │   ├── service/
-│       │   │   │   ├── UserService.java            # 业务层（JPA）
-│       │   │   │   ├── UserMyBatisService.java     # 业务层（MyBatis）
-│       │   │   │   ├── RoleService.java            # 角色业务（含级联清理）
-│       │   │   │   ├── PermissionService.java      # 权限业务（含级联清理）
-│       │   │   │   └── RbacService.java            # 关联分配/移除 + 聚合查询
-│       │   │   ├── repository/                     # Spring Data JPA 仓库
-│       │   │   │   ├── UserRepository.java
-│       │   │   │   ├── RoleRepository.java
-│       │   │   │   ├── PermissionRepository.java
-│       │   │   │   ├── UserRoleRepository.java
-│       │   │   │   └── RolePermissionRepository.java
-│       │   │   ├── mapper/                         # MyBatis Mapper 接口
-│       │   │   │   ├── UserMapper.java
-│       │   │   │   └── RbacMapper.java             # 用户权限 join 聚合查询
-│       │   │   ├── entity/
-│       │   │   │   ├── User.java                   # 用户实体
-│       │   │   │   ├── Role.java                   # 角色实体（RBAC）
-│       │   │   │   ├── Permission.java             # 权限实体（RBAC）
-│       │   │   │   ├── UserRole.java               # 用户-角色关联（RBAC）
-│       │   │   │   └── RolePermission.java         # 角色-权限关联（RBAC）
-│       │   │   ├── vo/UserPermissionVO.java        # 用户权限视图对象（含角色来源）
-│       │   │   └── exception/GlobalExceptionHandler.java
-│       │   └── resources/
-│       │       ├── application.yaml                 # 公共配置（profile 拆分见下）
-│       │       ├── application-dev.yaml             # 开发环境（H2，托管 ../vue/dist）
-│       │       ├── application-prod.yaml            # 生产环境（MySQL，托管挂载卷 /app/frontend）
-│       │       ├── mapper/
-│       │       │   ├── UserMapper.xml              # MyBatis SQL 映射
-│       │       │   └── RbacMapper.xml              # RBAC 多表 join SQL
-│       │       └── static/                         # 仅占位（.gitkeep，前端产物不进 jar）
-│       └── test/...
-├── fastapi-app/                      # FastAPI 复刻版后端（Python 3.11 + uv）
-│   ├── pyproject.toml                # 依赖（uv 管理）
-│   ├── README.md                     # 复刻说明 + 接口清单
-│   └── app/                          # 应用代码（config/database/models/routers/services）
-└── vue/                              # Vue 3 前端
-    ├── package.json
-    ├── vite.config.js                # dev 代理 /api → 9090；build 输出到 dist/
-    ├── index.html
-    ├── build.sh                      # 构建脚本（npm run build → dist/）
-    ├── dev.sh                        # 开发服务器脚本（5173）
-    └── src/
-        ├── main.js                   # 入口（Element Plus 全量注册 + 中文语言包）
-        ├── App.vue                   # 布局：深色 header + 左侧导航 + footer
-        ├── router/index.js           # 路由（登录鉴权守卫）
-        ├── api/                      # axios 封装（统一处理 {code,message,data}）
-        │   ├── auth.js               # 认证接口（注册/登录/退出）
-        │   └── user.js               # 用户接口（JPA/MyBatis）
-        ├── utils/auth.js             # token 存取
-        ├── styles/global.css         # 全局样式
-        └── views/
-            ├── HomeView.vue          # 首页（项目介绍）
-            ├── LoginView.vue         # 登录/注册
-            ├── UsersView.vue         # 用户管理（JPA）
-            └── MybatisUsersView.vue  # 用户管理（MyBatis，含按用户名查询）
+├── spring-boot/        # Spring Boot 3.5 后端（Java 21，dev:9090 / prod:8080）
+│   ├── src/main/java/  #   按 auth / controller / service / repository / mapper / entity 分层
+│   ├── src/main/resources/  # application-{dev,prod}.yaml + schema.sql/data.sql + MyBatis XML
+│   ├── pom.xml         # Maven 配置（JPA + MyBatis 双持久层、Knife4j、JWT）
+│   └── mvnw / start.sh # Maven Wrapper / 编译启动脚本
+├── fastapi-app/        # FastAPI 复刻版后端（Python 3.11 + uv，接口与 Java 版一致）
+├── vue/                # Vue 3 + Vite + Element Plus 前端（dev:5173，构建产物 dist/）
+└── deploy/             # Docker 部署：docker-compose 编排（应用 + MySQL）+ Dockerfile（见「方式三」）
 ```
 
 ## 双持久层设计（JPA + MyBatis）
 
 JPA 与 MyBatis 共享同一 H2 数据源和同一张 `users` 表：
 
-- **JPA** 负责建表（`ddl-auto: update`），通过 `UserRepository` 操作数据，接口前缀 `/api/users`
+- **JPA** 不负责建表（`ddl-auto: none`）：表结构与种子数据由 `schema.sql` + `data.sql` 在启动时幂等执行（`spring.sql.init`，MySQL 方言一份脚本通吃 dev/prod），通过 `UserRepository` 操作数据，接口前缀 `/api/users`
 - **MyBatis** 通过 `UserMapper`（XML Mapper）读写同一张表，接口前缀 `/api/mybatis/users`
 - 两套 API 功能完全等价，可在前端页面分别操作、交叉验证
 - 事务统一由 Spring 管理（`@Transactional` 同时覆盖 JPA 与 MyBatis）
@@ -182,17 +109,20 @@ java -jar target/spring-boot-demo-1.0.0.jar
 
 ### 方式三：Docker 部署（推荐）
 
-无需本机安装 JDK / Node。所有部署文件集中在 `deploy/` 目录，每个组件一个独立 compose 文件（自包含：服务/端口/卷/健康检查），由总入口 `docker-compose.yaml`（`include` 聚合）编排——**既可一键部署全部组件，也可单独部署单个组件**：
+后端无需本机安装 JDK（编译在 Maven 容器内完成）；前端**如需重新构建**则需 Node（`vue/dist` 已存在时可直接跳过构建步骤）。所有部署文件集中在 `deploy/` 目录，每个组件一个独立 compose 文件（自包含：服务/端口/卷/健康检查），由总入口 `docker-compose.yaml`（`include` 聚合）编排——**既可一键部署全部组件，也可单独部署单个组件**：
 
 ```
 deploy/
 ├── docker-compose.yaml          # 总入口：include 聚合所有组件
-├── docker-compose.mysql.yml     # MySQL（公共组件，宿主机 3306）
-├── docker-compose.app.yml       # 应用（宿主机 8080）
+├── docker-compose.mysql.yaml     # MySQL（公共组件，宿主机 3306）
+├── docker-compose.app.yaml       # 应用（宿主机 8080）
 └── Dockerfile                   # 应用多阶段构建（build context = 项目根）
 ```
 
 ```bash
+# 0. 首次部署：先创建 MySQL 外部数据卷（只需执行一次；compose 声明 external: true，卷不存在 up 会直接报错）
+docker volume create spring-boot-demo-mysql-data
+
 # 1. 构建前端（输出 vue/dist，部署时挂载进容器 /app/frontend）
 cd vue
 npm run build
@@ -204,7 +134,9 @@ docker compose up -d --build
 
 浏览器访问 **http://localhost:8080**。
 
-> 应用容器自动激活 **prod profile**（`static-locations: file:/app/frontend/,classpath:/static/`，前端从挂载卷读取，jar 内不含前端）；MySQL 数据持久化在外部命名卷 `spring-boot-demo-mysql-data`（`external: true`，compose 不管理其生命周期，容器重建不丢数据）。
+> 应用容器自动激活 **prod profile**（`static-locations: file:/app/frontend/,classpath:/static/`，前端从挂载卷读取，jar 内不含前端）；MySQL 数据持久化在外部命名卷 `spring-boot-demo-mysql-data`（`external: true`，compose 不管理其生命周期，容器重建不丢数据，首次部署需先执行上面的第 0 步创建）。
+>
+> **首次启动时序**：MySQL 容器首次初始化（建库/建用户）约需 30s，期间应用会等待连接就绪（Hikari `initialization-fail-timeout: 60s`），无需干预；之后重启 MySQL 秒级就绪。
 >
 > **改前端只需**：`cd vue && npm run build`，刷新浏览器即生效，无需重建后端镜像/重启容器。
 >
@@ -224,16 +156,16 @@ docker compose down            # 停止并移除全部容器（数据卷保留�
 单独部署单个组件（在 `deploy/` 目录执行）：
 
 ```bash
-docker compose -f docker-compose.mysql.yml up -d   # 只启动 MySQL
-docker compose -f docker-compose.mysql.yml down    # 停止 MySQL 容器
-docker compose -f docker-compose.app.yml up -d     # 只启动应用
-docker compose -f docker-compose.app.yml down      # 停止应用容器
+docker compose -f docker-compose.mysql.yaml up -d   # 只启动 MySQL
+docker compose -f docker-compose.mysql.yaml down    # 停止 MySQL 容器
+docker compose -f docker-compose.app.yaml up -d     # 只启动应用
+docker compose -f docker-compose.app.yaml down      # 停止应用容器
 ```
 
 **新增组件三步**（如 Redis、RabbitMQ 等中间件）：
-1. 在 `deploy/` 新建 `docker-compose.<组件>.yml`（自包含：服务/端口/卷/健康检查，端口映射到宿主机）
+1. 在 `deploy/` 新建 `docker-compose.<组件>.yaml`（自包含：服务/端口/卷/健康检查，端口映射到宿主机）
 2. 在 `deploy/docker-compose.yaml` 的 `include` 列表加一行
-3. `cd deploy && docker compose up -d` 即可，也可单独 `-f docker-compose.<组件>.yml up -d`
+3. `cd deploy && docker compose up -d` 即可，也可单独 `-f docker-compose.<组件>.yaml up -d`
 
 > **组件间通信**：不建共享网络，所有组件通过「宿主机地址:端口」互通——公共组件映射标准端口到宿主机（MySQL 3306、Redis 6379…），应用容器内用 `host.docker.internal` 访问宿主机（compose 的 `extra_hosts: host-gateway` 已配好，见 app yaml）。组件 yaml 互不引用、无强耦合；即使中间件不在 Docker 里（宿主机原生进程），应用也能照常连接。
 >
@@ -250,7 +182,7 @@ docker compose -f docker-compose.app.yml down      # 停止应用容器
 
 - **使用 DBeaver / Navicat 等客户端连接 MySQL**：宿主机 `localhost:3306`，库 `springboot_demo`，用户 `springboot` / 密码 `springboot123`（或 root / `root123`）。认证插件已改为 `mysql_native_password`——MySQL 8 默认 `caching_sha2_password` 会让 JDBC 客户端报 `Public Key Retrieval is not allowed`；若连接其他 MySQL 实例遇到该错误，在连接设置里加 `allowPublicKeyRetrieval=true` 即可（本项目 app 的 JDBC URL 已带此参数）
 - **生产模式使用 MySQL**：数据保存在外部卷 `spring-boot-demo-mysql-data`，容器重启/重建不丢数据；compose 不删外部卷，清空数据需手动 `docker volume rm spring-boot-demo-mysql-data`
-- 数据库账号密码为 demo 默认值（`root123` / `springboot123`），正式部署务必在 `deploy/docker-compose.mysql.yml` 中修改
+- 数据库账号密码为 demo 默认值（`root123` / `springboot123`），正式部署务必在 `deploy/docker-compose.mysql.yaml` 中修改
 - 首次构建需下载 Maven 依赖、npm 包与 MySQL 镜像，耗时较长属正常
 - 两个 compose 文件均已配置 `healthcheck`（应用探测首页 `/`，MySQL 探测 `mysqladmin ping`）与 `restart: unless-stopped`
 - 端口冲突时修改对应 compose 文件中 `ports` 的宿主机侧端口（当前生产映射：app `8080:8080`、mysql `3306:3306`）
@@ -271,9 +203,9 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - 健康检查：http://localhost:8000/api/health
 - 完整技术对照与接口清单见 `fastapi-app/README.md`
 
-### H2 数据库控制台
+### H2 数据库控制台（仅 dev profile）
 
-- 地址：http://localhost:8080/h2-console
+- 地址：http://localhost:9090/h2-console（dev 后端端口 9090；生产环境已禁用）
 - JDBC URL：`jdbc:h2:mem:demodb`
 - 用户名：`sa`，密码：（空）
 

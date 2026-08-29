@@ -3,7 +3,7 @@
 # spring-boot-demo 前端 — 编译脚本
 #   npm run build → vue/dist/（生产构建产物）
 #   部署时由 docker-compose 挂载 dist/ → 容器 /app/frontend
-#   （见 deploy/docker-compose.app.yml），改前端只需重新构建，
+#   （见 deploy/docker-compose.app.yaml），改前端只需重新构建，
 #   无需重建后端镜像/重启容器
 #
 # 用法:

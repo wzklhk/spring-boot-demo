@@ -10,6 +10,14 @@ server:
   port: 9090
 
 spring:
+  output:
+    ansi:
+      # dev 模式强制启用 ANSI 彩色日志。
+      # 默认 detect 依赖 System.console() != null 判定终端，而经 mvnw spring-boot:run / IDE 启动时
+      # stdout 经过管道/重定向，常被判为“非终端”，颜色被自动关闭 → 这里强制 always。
+      # 仅配置在 dev profile：prod（Docker）日志保持纯文本，避免日志文件混入 ANSI 转义码。
+      enabled: always
+
   web:
     resources:
       # 相对路径基于后端运行目录（cd spring-boot 后执行 mvnw/spring-boot:run 或 java -jar）

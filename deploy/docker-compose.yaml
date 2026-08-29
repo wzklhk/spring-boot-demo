@@ -5,11 +5,11 @@
 #   docker compose up -d --build    构建并后台启动（全部服务）
 #   docker compose ps               查看所有容器状态
 #   docker compose down             停止并移除所有容器
-#   docker compose logs -f app      跟踪应用日志
+#   docker compose logs -f spring-boot-demo  跟踪应用日志
 #
 # 被引用的独立组件 yaml（各自也可单独部署）:
-#   docker-compose.mysql.yml  — MySQL 8（宿主机 3306）
-#   docker-compose.app.yml    — 应用（宿主机 8080）
+#   docker-compose.mysql.yaml  — MySQL 8（宿主机 3306）
+#   docker-compose.app.yaml    — 应用（宿主机 8080）
 #
 # 组件间通信: 不建共享网络，所有组件通过「宿主机地址:端口」互通
 #   - 公共组件（MySQL/Redis 等）暴露标准端口到宿主机（3306/6379...）
@@ -17,12 +17,12 @@
 #   - 组件 yaml 自包含、互不引用，改地址只动对应 yaml 一处
 #
 # 新增组件三步:
-#   1. 新建 docker-compose.<组件>.yml（自包含：服务/端口/卷/健康检查）
+#   1. 新建 docker-compose.<组件>.yaml（自包含：服务/端口/卷/健康检查）
 #   2. 在下方 include 列表加一行
 #   3. docker compose up -d
 # ============================================================
 name: spring-boot-demo
 
 include:
-  - docker-compose.mysql.yml
-  - docker-compose.app.yml
+  - docker-compose.mysql.yaml
+  - docker-compose.app.yaml

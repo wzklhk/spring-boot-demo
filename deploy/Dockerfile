@@ -18,7 +18,10 @@ COPY spring-boot/.mvn spring-boot/.mvn
 COPY spring-boot/mvnw spring-boot/mvnw
 COPY spring-boot/src spring-boot/src
 
+# sed 防御：Windows 上 autocrlf 可能把 mvnw 检出成 CRLF，shebang 变成 "#!/bin/sh\r"
+# 导致 "/bin/sh: ./mvnw: not found"；这里先剥掉 \r 再执行（.gitattributes 已强制 LF，此为双保险）
 RUN cd spring-boot \
+    && sed -i 's/\r$//' mvnw \
     && chmod +x mvnw \
     && ./mvnw -q -DskipTests package
 
@@ -28,7 +31,7 @@ WORKDIR /app
 
 COPY --from=builder /workspace/spring-boot/target/spring-boot-demo-1.0.0.jar /app/app.jar
 
-# 前端静态资源挂载点（compose 挂载 vue/dist 到此，见 deploy/docker-compose.app.yml）
+# 前端静态资源挂载点（compose 挂载 vue/dist 到此，见 deploy/docker-compose.app.yaml）
 RUN mkdir -p /app/frontend
 
 EXPOSE 8080

@@ -1,6 +1,6 @@
 # ============================================================
 # 公共配置（所有环境共享）
-# 环境专属配置: application-dev.yml（开发）/ application-prod.yml（生产）
+# 环境专属配置: application-dev.yaml（开发）/ application-prod.yaml（生产）
 #
 # Profile 激活方式（优先级从高到低）:
 #   1. 环境变量:  SPRING_PROFILES_ACTIVE=prod
@@ -43,7 +43,7 @@ jwt:
   # token 有效期（秒），默认 24 小时
   expiration: 86400
 
-# API 文档（Knife4j + springdoc-openapi）公共配置；prod 在 application-prod.yml 中整体禁用
+# API 文档（Knife4j + springdoc-openapi）公共配置；prod 在 application-prod.yaml 中整体禁用
 springdoc:
   api-docs:
     enabled: true

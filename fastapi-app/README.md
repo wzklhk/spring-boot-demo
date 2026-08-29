@@ -69,7 +69,7 @@ backend/fastapi-app/
 ├── pyproject.toml          # uv 项目定义
 ├── app/
 │   ├── main.py             # 入口 + 全局异常处理
-│   ├── config.py           # 配置（对应 application.yml）
+│   ├── config.py           # 配置（对应 application.yaml）
 │   ├── database.py         # 引擎/会话/建表（对应 JPA 基础设施）
 │   ├── models.py           # ORM 模型（对应 JPA Entity）
 │   ├── schemas.py          # Pydantic DTO/VO（对应 dto/vo + 校验）
