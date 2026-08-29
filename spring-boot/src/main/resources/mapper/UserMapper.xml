@@ -67,15 +67,16 @@
 
     <insert id="insert" parameterType="com.example.demo.entity.User"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, email, password, created_at, updated_at)
-        VALUES (#{username}, #{email}, #{password}, #{createdAt}, #{updatedAt})
+        <!-- created_at / updated_at 由数据库约束自动填充（DEFAULT CURRENT_TIMESTAMP / ON UPDATE） -->
+        INSERT INTO users (username, email, password)
+        VALUES (#{username}, #{email}, #{password})
     </insert>
 
     <update id="update" parameterType="com.example.demo.entity.User">
+        <!-- updated_at 由数据库约束自动刷新（ON UPDATE CURRENT_TIMESTAMP） -->
         UPDATE users
-        SET username   = #{username},
-            email      = #{email},
-            updated_at = #{updatedAt}
+        SET username = #{username},
+            email    = #{email}
         WHERE id = #{id}
     </update>
 

@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -72,15 +71,13 @@ public class UserMyBatisServiceImpl implements UserService {
         if (userMapper.countByEmail(user.getEmail()) > 0) {
             throw new RuntimeException("邮箱已被注册: " + user.getEmail());
         }
-        // MyBatis 不走 JPA 生命周期回调，时间戳需手动填充
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
         // 密码 BCrypt 加密存储；未传密码时使用默认密码 123456
         String rawPassword = (user.getPassword() == null || user.getPassword().isBlank())
                 ? "123456" : user.getPassword();
         user.setPassword(passwordEncoder.encode(rawPassword));
         userMapper.insert(user);
-        return user;
+        // created_at / updated_at 由数据库约束自动填充，重查一次返回真实值
+        return findById(user.getId());
     }
 
     @Override
@@ -89,9 +86,9 @@ public class UserMyBatisServiceImpl implements UserService {
         User existing = findById(id);
         existing.setUsername(user.getUsername());
         existing.setEmail(user.getEmail());
-        existing.setUpdatedAt(LocalDateTime.now());
         userMapper.update(existing);
-        return existing;
+        // updated_at 由数据库约束自动刷新，重查一次返回真实值
+        return findById(id);
     }
 
     @Override

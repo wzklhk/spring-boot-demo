@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import java.time.LocalDateTime;
 
 @Data
@@ -37,20 +39,12 @@ public class User {
     @Column(nullable = false, length = 100)
     private String password;
 
+    /** created_at / updated_at 由数据库约束自动维护（DEFAULT CURRENT_TIMESTAMP / ON UPDATE），应用侧不写入 */
     @Column(name = "created_at", updatable = false)
+    @Generated(GenerationTime.INSERT)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @Generated(GenerationTime.ALWAYS)
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

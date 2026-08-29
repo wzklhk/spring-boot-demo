@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import java.time.LocalDateTime;
 
 /**
@@ -31,11 +33,8 @@ public class UserRole {
     @Column(name = "role_id", nullable = false)
     private Long roleId;
 
+    /** created_at 由数据库约束自动维护（DEFAULT CURRENT_TIMESTAMP），应用侧不写入 */
     @Column(name = "created_at", updatable = false)
+    @Generated(GenerationTime.INSERT)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

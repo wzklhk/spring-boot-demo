@@ -6,6 +6,10 @@
 -- 由 spring.sql.init 在启动时自动执行（spring.sql.init.mode: always）
 -- 幂等：全部使用 IF NOT EXISTS，可重复执行
 -- 字段与 JPA 实体（User/Role/Permission/UserRole/RolePermission）严格对应
+--
+-- created_at / updated_at 由数据库约束自动维护（应用侧无需再填充）：
+--   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+--   updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS users (
@@ -13,8 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
     username    VARCHAR(255) NOT NULL,
     email       VARCHAR(255) NOT NULL,
     password    VARCHAR(100) NOT NULL,
-    created_at  DATETIME,
-    updated_at  DATETIME,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uk_users_username UNIQUE (username)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -23,8 +27,8 @@ CREATE TABLE IF NOT EXISTS roles (
     code        VARCHAR(64)  NOT NULL,
     name        VARCHAR(128) NOT NULL,
     description VARCHAR(255),
-    created_at  DATETIME,
-    updated_at  DATETIME,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uk_roles_code UNIQUE (code)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -33,8 +37,8 @@ CREATE TABLE IF NOT EXISTS permissions (
     code        VARCHAR(128) NOT NULL,
     name        VARCHAR(128) NOT NULL,
     description VARCHAR(255),
-    created_at  DATETIME,
-    updated_at  DATETIME,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uk_permissions_code UNIQUE (code)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -42,7 +46,8 @@ CREATE TABLE IF NOT EXISTS user_roles (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id    BIGINT NOT NULL,
     role_id    BIGINT NOT NULL,
-    created_at DATETIME,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uk_user_role UNIQUE (user_id, role_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -50,6 +55,7 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
     role_id       BIGINT NOT NULL,
     permission_id BIGINT NOT NULL,
-    created_at    DATETIME,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uk_role_permission UNIQUE (role_id, permission_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
