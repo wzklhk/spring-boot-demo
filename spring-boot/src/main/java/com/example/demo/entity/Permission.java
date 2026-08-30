@@ -12,7 +12,7 @@ import org.hibernate.annotations.GenerationTime;
 import java.time.LocalDateTime;
 
 /**
- * 权限实体（RBAC）—— 对应表 permissions
+ * 权限实体（RBAC）—— 对应表 permission
  * 权限编码约定：资源:动作，如 user:create / role:delete
  */
 @Data
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "permissions")
+@Table(name = "permission")
 public class Permission {
 
     @Id

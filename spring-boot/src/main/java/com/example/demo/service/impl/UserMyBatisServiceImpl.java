@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 用户服务 MyBatis 实现（默认）—— 走 UserMapper（XML SQL），与 JPA 共享同一张 users 表。
+ * 用户服务 MyBatis 实现（默认）—— 走 UserMapper（XML SQL），与 JPA 共享同一张 user 表。
  * {@link Primary} 使其成为 UserService 接口注入的默认实现（Controller/Auth 无感知切换）。
  */
 @Service

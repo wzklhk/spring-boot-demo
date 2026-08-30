@@ -12,37 +12,37 @@
 --   updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS user (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     username    VARCHAR(255) NOT NULL,
     email       VARCHAR(255) NOT NULL,
     password    VARCHAR(100) NOT NULL,
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT uk_users_username UNIQUE (username)
+    CONSTRAINT uk_user_username UNIQUE (username)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS roles (
+CREATE TABLE IF NOT EXISTS role (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     code        VARCHAR(64)  NOT NULL,
     name        VARCHAR(128) NOT NULL,
     description VARCHAR(255),
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT uk_roles_code UNIQUE (code)
+    CONSTRAINT uk_role_code UNIQUE (code)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS permissions (
+CREATE TABLE IF NOT EXISTS permission (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     code        VARCHAR(128) NOT NULL,
     name        VARCHAR(128) NOT NULL,
     description VARCHAR(255),
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT uk_permissions_code UNIQUE (code)
+    CONSTRAINT uk_permission_code UNIQUE (code)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS user_roles (
+CREATE TABLE IF NOT EXISTS user_role (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id    BIGINT NOT NULL,
     role_id    BIGINT NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
     CONSTRAINT uk_user_role UNIQUE (user_id, role_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS role_permissions (
+CREATE TABLE IF NOT EXISTS role_permission (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
     role_id       BIGINT NOT NULL,
     permission_id BIGINT NOT NULL,

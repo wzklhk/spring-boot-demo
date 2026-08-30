@@ -12,14 +12,14 @@ import org.hibernate.annotations.GenerationTime;
 import java.time.LocalDateTime;
 
 /**
- * 角色实体（RBAC）—— 对应表 roles
+ * 角色实体（RBAC）—— 对应表 role
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "roles")
+@Table(name = "role")
 public class Role {
 
     @Id

@@ -11,7 +11,7 @@ import org.hibernate.annotations.GenerationTime;
 import java.time.LocalDateTime;
 
 /**
- * 角色-权限关联实体（RBAC）—— 对应表 role_permissions
+ * 角色-权限关联实体（RBAC）—— 对应表 role_permission
  * 一个角色可拥有多个权限，一个权限可被多个角色拥有（多对多）
  */
 @Data
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "role_permissions",
+@Table(name = "role_permission",
         uniqueConstraints = @UniqueConstraint(name = "uk_role_permission", columnNames = {"role_id", "permission_id"}))
 public class RolePermission {
 
