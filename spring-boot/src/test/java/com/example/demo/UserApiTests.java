@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 用户统一接口集成测试（真实 HTTP + H2 内存库，无副作用）。
- * 覆盖：默认分页（page=1 size=10）、按用户名查询、CRUD、旧 MyBatis 路径已下线。
+ * 覆盖：默认分页（page=1 size=10）、条件分页查询（VO 入参）、按用户名查询、CRUD、旧 MyBatis 路径已下线。
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserApiTests {
@@ -46,9 +46,11 @@ class UserApiTests {
     }
 
     @Test
-    void listReturnsPaginationByDefault() {
+    void queryWithEmptyVoReturnsPlainPagination() {
         Token token = register();
-        ResponseEntity<Map> resp = rest.exchange("/api/users", HttpMethod.GET, auth(token), Map.class);
+        // 统一查询 API：传空 VO {} 退化为普通分页查询
+        ResponseEntity<Map> resp = rest.exchange("/api/user/query?page=1&size=10", HttpMethod.POST,
+                new HttpEntity<>(Map.of(), authHeaders(token)), Map.class);
         assertEquals(200, resp.getBody().get("code"));
         Map page = (Map) resp.getBody().get("data");
         // 默认缺省：第 1 页、每页 10 条（同一上下文测试间数据累积，数量只做下限断言）
@@ -60,10 +62,27 @@ class UserApiTests {
     }
 
     @Test
+    void conditionalQueryReturnsPagedVo() {
+        Token token = register();
+        // 请求体传 UserVO（非空字段为等值条件），返回 VO 分页结果
+        ResponseEntity<Map> resp = rest.exchange("/api/user/query?page=1&size=10", HttpMethod.POST,
+                new HttpEntity<>(Map.of("username", token.username()), authHeaders(token)), Map.class);
+        assertEquals(200, resp.getBody().get("code"));
+        Map page = (Map) resp.getBody().get("data");
+        assertEquals(1, page.get("page"));
+        assertEquals(10, page.get("size"));
+        java.util.List<?> list = (java.util.List<?>) page.get("list");
+        assertEquals(1, list.size(), "按用户名等值条件应恰好命中 1 条");
+        Map user = (Map) list.get(0);
+        assertEquals(token.username(), user.get("username"));
+        assertFalse(user.containsKey("password"), "条件查询返回 VO 不应包含密码");
+    }
+
+    @Test
     void findByUsernameReturnsSingleUser() {
         Token token = register();
         ResponseEntity<Map> resp = rest.exchange(
-                "/api/users/username/" + token.username(),
+                "/api/user/username/" + token.username(),
                 HttpMethod.GET, auth(token), Map.class);
         assertEquals(200, resp.getBody().get("code"));
         Map user = (Map) resp.getBody().get("data");
@@ -77,7 +96,7 @@ class UserApiTests {
         Map<String, String> createBody = Map.of("username", username, "email", username + "@test.com");
 
         // POST 创建 → 201
-        ResponseEntity<Map> created = rest.exchange("/api/users", HttpMethod.POST,
+        ResponseEntity<Map> created = rest.exchange("/api/user", HttpMethod.POST,
                 new HttpEntity<>(createBody, authHeaders(token)), Map.class);
         assertEquals(201, created.getStatusCode().value());
         Map data = (Map) created.getBody().get("data");
@@ -86,18 +105,18 @@ class UserApiTests {
 
         // PUT 更新
         Map<String, String> updateBody = Map.of("username", username, "email", username + "_v2@test.com");
-        ResponseEntity<Map> updated = rest.exchange("/api/users/" + id, HttpMethod.PUT,
+        ResponseEntity<Map> updated = rest.exchange("/api/user/" + id, HttpMethod.PUT,
                 new HttpEntity<>(updateBody, authHeaders(token)), Map.class);
         assertEquals(200, updated.getBody().get("code"));
         assertEquals(username + "_v2@test.com", ((Map) updated.getBody().get("data")).get("email"));
 
         // GET 单条
-        ResponseEntity<Map> got = rest.exchange("/api/users/" + id, HttpMethod.GET, auth(token), Map.class);
+        ResponseEntity<Map> got = rest.exchange("/api/user/" + id, HttpMethod.GET, auth(token), Map.class);
         assertEquals(200, got.getBody().get("code"));
 
         // DELETE → 再查返回业务错误（记录不存在）
-        rest.exchange("/api/users/" + id, HttpMethod.DELETE, auth(token), Map.class);
-        ResponseEntity<Map> after = rest.exchange("/api/users/" + id, HttpMethod.GET, auth(token), Map.class);
+        rest.exchange("/api/user/" + id, HttpMethod.DELETE, auth(token), Map.class);
+        ResponseEntity<Map> after = rest.exchange("/api/user/" + id, HttpMethod.GET, auth(token), Map.class);
         assertEquals(400, after.getBody().get("code"));
         assertTrue(((String) after.getBody().get("message")).contains("用户不存在"));
     }

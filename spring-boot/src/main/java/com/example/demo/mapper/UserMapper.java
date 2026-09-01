@@ -1,6 +1,7 @@
 package com.example.demo.mapper;
 
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
+import com.example.demo.pojo.vo.UserVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -21,4 +22,12 @@ public interface UserMapper extends BaseMapper<User> {
     int countByUsername(@Param("username") String username);
 
     int countByEmail(@Param("email") String email);
+
+    /** 条件分页查询：VO 非空字段作为等值条件（SQL 见 UserMapper.xml） */
+    List<User> selectByCondition(@Param("vo") UserVO vo,
+                                 @Param("offset") int offset,
+                                 @Param("size") int size);
+
+    /** 条件查询总记录数 */
+    long countByCondition(@Param("vo") UserVO vo);
 }

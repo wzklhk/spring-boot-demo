@@ -46,20 +46,20 @@ class Knife4jDocsTests {
             assertTrue(tagNames.contains(expected), "文档 tags 应包含: " + expected);
         }
 
-        // 关键路径都应暴露
+        // 关键路径都应暴露（单数资源名）
         JsonNode paths = root.path("paths");
         for (String expected : List.of(
                 "/api/auth/register",
                 "/api/auth/login",
                 "/api/auth/logout",
-                "/api/users",
-                "/api/users/username/{username}",
-                "/api/users/{id}",
-                "/api/roles",
-                "/api/permissions",
-                "/api/users/{userId}/roles",
-                "/api/roles/{roleId}/permissions",
-                "/api/users/{userId}/permissions")) {
+                "/api/user/query",
+                "/api/user/username/{username}",
+                "/api/user/{id}",
+                "/api/role/query",
+                "/api/permission/query",
+                "/api/user/{userId}/role",
+                "/api/role/{roleId}/permission",
+                "/api/user/{userId}/permission")) {
             assertTrue(paths.has(expected), "文档 paths 应包含: " + expected);
         }
     }
@@ -74,12 +74,12 @@ class Knife4jDocsTests {
             JsonNode root = mapper.readTree(resp.getBody());
             assertTrue(root.path("paths").size() > 0, "分组 " + group + " 应包含接口");
         }
-        // RBAC 子资源路径归属"2-用户与权限管理"组（/api/users/** 模式覆盖）
+        // RBAC 子资源路径归属"2-用户与权限管理"组（/api/user/** 模式覆盖）
         ResponseEntity<String> resp = rest.exchange(
                 "/v3/api-docs/2-用户与权限管理", HttpMethod.GET, null, String.class);
         JsonNode paths = mapper.readTree(resp.getBody()).path("paths");
-        assertTrue(paths.has("/api/users/{userId}/roles"), "RBAC 子资源路径应在用户与权限管理组内");
-        assertTrue(paths.has("/api/users/{userId}/permissions"), "聚合查询路径应在用户与权限管理组内");
+        assertTrue(paths.has("/api/user/{userId}/role"), "RBAC 子资源路径应在用户与权限管理组内");
+        assertTrue(paths.has("/api/user/{userId}/permission"), "聚合查询路径应在用户与权限管理组内");
     }
 
     @Test
@@ -88,15 +88,18 @@ class Knife4jDocsTests {
         assertEquals(200, resp.getStatusCode().value());
 
         JsonNode root = mapper.readTree(resp.getBody());
-        JsonNode getUsers = root.path("paths").path("/api/users");
-        // GET 分页查询有 @Operation summary
-        JsonNode getOp = getUsers.path("get");
-        assertTrue(getOp.path("summary").asText().contains("分页"), "GET /api/users 应有分页说明");
+        JsonNode getUser = root.path("paths").path("/api/user");
         // 继承自 BaseController 的 @Operation 应生效
-        JsonNode createOp = getUsers.path("post");
+        JsonNode createOp = getUser.path("post");
         assertEquals("创建", createOp.path("summary").asText());
+        // 统一分页查询（普通分页 + 条件分页合并，POST /query —— 独立路径节点）
+        JsonNode queryOp = root.path("paths").path("/api/user/query").path("post");
+        assertTrue(queryOp.path("summary").asText().contains("分页"),
+                "POST /api/user/query 应有 @Operation summary");
+        assertTrue(queryOp.path("description").asText().contains("普通分页"),
+                "POST /api/user/query 应说明空 VO 即普通分页");
         // 子类专属方法
-        JsonNode usernameOp = root.path("paths").path("/api/users/username/{username}").path("get");
+        JsonNode usernameOp = root.path("paths").path("/api/user/username/{username}").path("get");
         assertTrue(usernameOp.path("summary").asText().contains("用户名"), "按用户名查询应有 @Operation");
 
         // 每个 API 路径至少有一个带 summary 的操作

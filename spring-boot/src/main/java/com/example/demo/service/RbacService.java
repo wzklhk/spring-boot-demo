@@ -1,12 +1,12 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Permission;
-import com.example.demo.entity.Role;
-import com.example.demo.entity.RolePermission;
-import com.example.demo.entity.UserRole;
+import com.example.demo.pojo.entity.Permission;
+import com.example.demo.pojo.entity.Role;
+import com.example.demo.pojo.entity.RolePermission;
+import com.example.demo.pojo.entity.UserRole;
 import com.example.demo.mapper.RbacMapper;
 import com.example.demo.repository.*;
-import com.example.demo.vo.UserPermissionVO;
+import com.example.demo.pojo.vo.UserPermissionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

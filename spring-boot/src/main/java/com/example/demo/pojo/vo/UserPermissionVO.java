@@ -1,4 +1,4 @@
-package com.example.demo.vo;
+package com.example.demo.pojo.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2>用户管理（JPA）</h2>
-        <p class="sub">接口前缀 <code>/api/users</code> · Spring Data JPA 实现</p>
+        <p class="sub">接口前缀 <code>/api/user</code> · 统一分页查询 <code>POST /api/user/query</code></p>
       </div>
       <el-button type="primary" @click="openCreate">
         <el-icon style="margin-right: 4px"><Plus /></el-icon>
@@ -12,15 +12,15 @@
     </div>
 
     <el-card shadow="never" class="table-card">
-      <!-- 按用户名精确查询（单条返回） -->
+      <!-- 按用户名条件查询（走统一分页查询 API，传 UserVO 条件） -->
       <div class="search-bar">
         <el-input
           v-model="searchUsername"
-          placeholder="输入用户名精确查询"
+          placeholder="输入用户名查询"
           clearable
           style="width: 260px"
           @keyup.enter="handleSearch"
-          @clear="fetchUsers"
+          @clear="resetSearch"
         >
           <template #prefix>
             <el-icon><Search /></el-icon>
@@ -51,9 +51,8 @@
         </template>
       </el-table>
 
-      <!-- 精确搜索时不分页，展示单条结果 -->
+      <!-- 查询接口均为分页查询：普通列表与条件查询共用同一分页器 -->
       <el-pagination
-        v-if="!searching"
         v-model:current-page="page"
         v-model:page-size="pageSize"
         :total="total"
@@ -93,7 +92,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { createUser, deleteUser, getUserByUsername, listUsers, updateUser } from '../api/user'
+import { createUser, deleteUser, queryUsers, updateUser } from '../api/user'
 
 const users = ref([])
 const page = ref(1)
@@ -116,10 +115,12 @@ const rules = {
   ]
 }
 
+// 统一分页查询：传空 VO {} 即普通分页；搜索时传 username 条件
 async function fetchUsers() {
   loading.value = true
   try {
-    const data = await listUsers(page.value, pageSize.value)
+    const vo = searching.value ? { username: searchUsername.value.trim() } : {}
+    const data = await queryUsers(vo, page.value, pageSize.value)
     users.value = data.list
     total.value = data.total
   } catch (e) {
@@ -140,22 +141,15 @@ async function handleSearch() {
     ElMessage.warning('请输入要查询的用户名')
     return
   }
-  loading.value = true
-  try {
-    const user = await getUserByUsername(name)
-    users.value = user ? [user] : []
-    searching.value = true
-    if (!user) ElMessage.info('未找到该用户')
-  } catch (e) {
-    ElMessage.error(e.message)
-  } finally {
-    loading.value = false
-  }
+  searching.value = true
+  page.value = 1
+  await fetchUsers()
 }
 
 function resetSearch() {
   searchUsername.value = ''
   searching.value = false
+  page.value = 1
   fetchUsers()
 }
 
@@ -208,11 +202,7 @@ async function handleDelete(row) {
   try {
     await deleteUser(row.id)
     ElMessage.success('删除成功')
-    if (searching.value && searchUsername.value.trim()) {
-      await handleSearch()
-    } else {
-      await fetchUsers()
-    }
+    await fetchUsers()
   } catch (e) {
     ElMessage.error(e.message)
   }

@@ -1,19 +1,20 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Role;
+import com.example.demo.pojo.entity.Role;
 import com.example.demo.repository.RolePermissionRepository;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRoleRepository;
 import com.example.demo.service.impl.BaseServiceImpl;
+import com.example.demo.pojo.vo.RoleVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 角色业务（RBAC）—— 继承 BaseServiceImpl 获得统一 CRUD + 分页；
+ * 角色业务（RBAC）—— 继承 BaseServiceImpl 获得统一 CRUD + 分页 + 条件分页；
  * 覆写 create/update/delete 保持原有特殊逻辑（编码/名称唯一校验、级联清理）。
  */
 @Service
-public class RoleService extends BaseServiceImpl<Role, Long, RoleRepository> {
+public class RoleService extends BaseServiceImpl<Role, Long, RoleRepository, RoleVO, RoleVO> {
 
     private final UserRoleRepository userRoleRepository;
     private final RolePermissionRepository rolePermissionRepository;
@@ -29,6 +30,16 @@ public class RoleService extends BaseServiceImpl<Role, Long, RoleRepository> {
     @Override
     protected String entityName() {
         return "角色";
+    }
+
+    @Override
+    protected Role newEntity() {
+        return new Role();
+    }
+
+    @Override
+    protected RoleVO newVO() {
+        return new RoleVO();
     }
 
     @Override

@@ -10,47 +10,52 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 统一 REST Controller 基类 —— 实体 CRUD + 分页查询。
+ * 统一 REST Controller 基类 —— 实体 CRUD + 统一分页查询。
  *
  * 子类只需声明 @RequestMapping 路径并注入实现 BaseService 的具体 Service：
  * <pre>
  * &#64;RestController
- * &#64;RequestMapping("/api/users")
- * public class UserController extends BaseController&lt;User, Long&gt; {
+ * &#64;RequestMapping("/api/user")
+ * public class UserController extends BaseController&lt;User, Long, UserVO, UserVO&gt; {
  *     public UserController(UserService userService) {
  *         super(userService);
  *     }
  * }
  * </pre>
  *
- * 端点约定（列表查询默认分页：page 从 1 起缺省 1，size 缺省 10）：
+ * 分页查询与条件分页查询合并为同一个 API：
  * <pre>
- *   GET    /api/{resource}       分页查询（?page=1&amp;size=10）
- *   GET    /api/{resource}/{id}  按 ID 查询
- *   POST   /api/{resource}       创建（201）
- *   PUT    /api/{resource}/{id}  更新
- *   DELETE /api/{resource}/{id}  删除
+ *   POST   /api/{resource}/query      统一分页查询：请求体传实体 VO（非空字段作为等值条件；
+ *                                     传空 VO {} 即退化为普通分页查询）
+ *                                     分页参数 page 从 1 起（缺省 1）、size 每页条数（缺省 10）
+ *   GET    /api/{resource}/{id}       按 ID 查询
+ *   POST   /api/{resource}            创建（201）
+ *   PUT    /api/{resource}/{id}       更新
+ *   DELETE /api/{resource}/{id}       删除
  * </pre>
  *
  * @param <T>  实体类型
  * @param <ID> 主键类型
+ * @param <Q>  查询入参类型（实体 VO）
+ * @param <V>  查询返回类型（实体 VO）
  */
-public abstract class BaseController<T, ID> {
+public abstract class BaseController<T, ID, Q, V> {
 
-    protected final BaseService<T, ID> service;
+    protected final BaseService<T, ID, Q, V> service;
 
-    protected BaseController(BaseService<T, ID> service) {
+    protected BaseController(BaseService<T, ID, Q, V> service) {
         this.service = service;
     }
 
-    /** 分页查询 —— 返回列表数据的查询接口默认分页返回 */
-    @GetMapping
-    @Operation(summary = "分页查询列表",
-            description = "列表查询默认分页返回：page 从 1 起（缺省第 1 页），size 每页条数（缺省 10）")
-    public Result<PageResult<T>> page(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return Result.success(service.page(page, size));
+    /** 统一分页查询 —— 请求体传实体 VO（非空字段作为等值条件），传空 VO {} 即普通分页查询 */
+    @PostMapping("/query")
+    @Operation(summary = "分页查询（支持条件）",
+            description = "普通分页与条件分页合并：请求体传实体 VO，非空字段作为等值查询条件；"
+                    + "传空 VO {} 即退化为普通分页查询。page 从 1 起（缺省第 1 页），size 每页条数（缺省 10）")
+    public Result<PageResult<V>> query(@RequestBody Q query,
+                                       @RequestParam(defaultValue = "1") int page,
+                                       @RequestParam(defaultValue = "10") int size) {
+        return Result.success(service.query(query, page, size));
     }
 
     @GetMapping("/{id}")

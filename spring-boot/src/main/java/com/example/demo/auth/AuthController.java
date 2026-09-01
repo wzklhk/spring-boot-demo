@@ -4,7 +4,7 @@ import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.dto.RegisterRequest;
 import com.example.demo.auth.vo.AuthResponse;
 import com.example.demo.common.Result;
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

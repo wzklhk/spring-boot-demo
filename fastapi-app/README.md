@@ -37,19 +37,19 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - `POST /logout`（需 token）→ token 加入黑名单
 - `DELETE /account`（需 token）→ 注销当前账号
 
-**用户** `/api/users`（JPA 版，需 token）
-- `GET /` `GET /{id}` `POST /` `PUT /{id}` `DELETE /{id}`
+**用户** `/api/user`（JPA 版，需 token）
+- `POST /query`（统一分页查询：body 传 UserVO，非空字段为等值条件，`{}` 即普通分页）\n- `GET /{id}` `POST /` `PUT /{id}` `DELETE /{id}`
 
-**用户(MyBatis)** `/api/mybatis/users`（原生 SQL 版，功能等价，需 token）
-- 同上 + `GET /username/{username}`
+**用户(MyBatis)** `/api/mybatis/user`（原生 SQL 版，功能等价，需 token）
+- `GET /{id}` `POST /` `PUT /{id}` `DELETE /{id}` + `GET /username/{username}`
 
-**角色** `/api/roles`、**权限** `/api/permissions`（需 token）
-- 标准 CRUD；code 唯一校验
+**角色** `/api/role`、**权限** `/api/permission`（需 token）
+- `POST /query`（统一分页查询，同用户） + 标准 CRUD；code 唯一校验
 
 **RBAC 关联**（需 token）
-- `GET/POST/DELETE /api/users/{userId}/roles[/{roleId}]`
-- `GET/POST/DELETE /api/roles/{roleId}/permissions[/{permissionId}]`
-- `GET /api/users/{userId}/permissions`（多表 join 聚合，含角色来源）
+- `GET/POST/DELETE /api/user/{userId}/role[/{roleId}]`
+- `GET/POST/DELETE /api/role/{roleId}/permission[/{permissionId}]`
+- `GET /api/user/{userId}/permission`（多表 join 聚合，含角色来源）
 
 ## 行为细节（与 Java 版逐条对齐）
 

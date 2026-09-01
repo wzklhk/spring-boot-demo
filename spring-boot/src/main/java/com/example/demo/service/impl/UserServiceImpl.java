@@ -1,20 +1,22 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UserRoleRepository;
 import com.example.demo.service.UserService;
+import com.example.demo.pojo.vo.UserVO;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 用户服务 JPA 实现 —— 继承 BaseServiceImpl 获得统一 CRUD + 分页；
+ * 用户服务 JPA 实现 —— 继承 BaseServiceImpl 获得统一 CRUD + 分页 + 条件分页；
  * 覆写 create/update/delete 保持特殊逻辑（密码加密、唯一性校验、级联清理）。
  * 非默认实现：需要时可 @Qualifier("userServiceImpl") 显式注入。
  */
 @Service
-public class UserServiceImpl extends BaseServiceImpl<User, Long, UserRepository> implements UserService {
+public class UserServiceImpl extends BaseServiceImpl<User, Long, UserRepository, UserVO, UserVO>
+        implements UserService {
 
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -30,6 +32,16 @@ public class UserServiceImpl extends BaseServiceImpl<User, Long, UserRepository>
     @Override
     protected String entityName() {
         return "用户";
+    }
+
+    @Override
+    protected User newEntity() {
+        return new User();
+    }
+
+    @Override
+    protected UserVO newVO() {
+        return new UserVO();
     }
 
     @Override

@@ -67,7 +67,7 @@ run() {
     fi
     info "启动 Spring Boot (${jar##*/})..."
     info "页面:    http://localhost:9090"
-    info "API:     http://localhost:9090/api/users"
+    info "API:     http://localhost:9090/api/user"
     info "H2 控制台: http://localhost:9090/h2-console  (jdbc:h2:mem:demodb, sa/空密码)"
     exec java -jar "$jar"
 }

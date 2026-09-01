@@ -3,11 +3,26 @@
 - LoginRequest / RegisterRequest：对应 auth/dto
 - AuthResponse：对应 auth/vo（token + 用户摘要）
 - UserOut / RoleOut / PermissionOut：序列化视图（password 永不输出，对应 @JsonProperty(WRITE_ONLY)）
+- UserVO / RoleVO / PermissionVO：统一分页查询入参（非空字段为等值条件，空 VO 即普通分页）+ 返回体
+- PageResult：分页包装，对应 Java 的 PageResult
 """
 from datetime import datetime
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+T = TypeVar("T")
+
+
+# ── 分页响应（对应 PageResult<T>） ─────────────────────────────
+class PageResult(BaseModel, Generic[T]):
+    """统一分页响应：list 当前页数据、total 总记录数、page 当前页（1 起）、size 每页条数、pages 总页数"""
+
+    list: list[T]
+    total: int
+    page: int
+    size: int
+    pages: int
 
 
 # ── 认证请求（对应 LoginRequest / RegisterRequest） ──────────────
@@ -79,6 +94,39 @@ class UserPermissionVO(BaseModel):
     roleCode: str
     roleName: str
     grantedAt: datetime
+
+
+# ── 实体 VO（统一分页查询入参 + 返回体，对应 Java 的 UserVO/RoleVO/PermissionVO） ──
+class UserVO(BaseModel):
+    """用户视图对象 —— 非空字段作为等值查询条件，空 VO 即普通分页；不含密码"""
+
+    id: Optional[int] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class RoleVO(BaseModel):
+    """角色视图对象 —— 非空字段作为等值查询条件，空 VO 即普通分页"""
+
+    id: Optional[int] = None
+    code: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class PermissionVO(BaseModel):
+    """权限视图对象 —— 非空字段作为等值查询条件，空 VO 即普通分页"""
+
+    id: Optional[int] = None
+    code: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 # ── 创建/更新请求（对应 @RequestBody Entity，含校验） ─────────────

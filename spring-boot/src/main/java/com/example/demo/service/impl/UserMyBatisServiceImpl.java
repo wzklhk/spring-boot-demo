@@ -1,11 +1,13 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.common.PageResult;
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRoleRepository;
 import com.example.demo.service.UserService;
+import com.example.demo.pojo.vo.UserVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,12 +34,14 @@ public class UserMyBatisServiceImpl implements UserService {
     }
 
     @Override
-    public PageResult<User> page(int page, int size) {
+    public PageResult<UserVO> query(UserVO query, int page, int size) {
         int safePage = Math.max(page, 1);
         int safeSize = Math.max(size, 1);
-        long total = userMapper.count();
-        List<User> list = userMapper.selectPage((safePage - 1) * safeSize, safeSize);
-        return PageResult.of(list, total, safePage, safeSize);
+        // 空 VO 时 XML 的 <where> 不生成条件 → 退化为普通分页查询
+        long total = userMapper.countByCondition(query);
+        List<User> list = userMapper.selectByCondition(query, (safePage - 1) * safeSize, safeSize);
+        List<UserVO> vos = list.stream().map(UserMyBatisServiceImpl::toUserVO).toList();
+        return PageResult.of(vos, total, safePage, safeSize);
     }
 
     @Override
@@ -100,5 +104,12 @@ public class UserMyBatisServiceImpl implements UserService {
         // 级联清理：用户-角色 关联
         userRoleRepository.deleteByUserId(id);
         userMapper.deleteById(id);
+    }
+
+    /** 实体 → VO（不含密码） */
+    private static UserVO toUserVO(User user) {
+        UserVO vo = new UserVO();
+        BeanUtils.copyProperties(user, vo);
+        return vo;
     }
 }

@@ -4,7 +4,7 @@
 <mapper namespace="com.example.demo.mapper.RbacMapper">
 
     <!-- 用户权限聚合查询：user → user_role → role → role_permission → permission -->
-    <select id="findUserPermissions" resultType="com.example.demo.vo.UserPermissionVO">
+    <select id="findUserPermissions" resultType="com.example.demo.pojo.vo.UserPermissionVO">
         SELECT p.id          AS id,
                p.code        AS code,
                p.name        AS name,

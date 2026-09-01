@@ -40,7 +40,7 @@
       </template>
       <ul class="dual-list">
         <li>Service 面向接口（<code>UserService</code>），默认注入 MyBatis 实现（<code>@Primary</code>），JPA 实现可 <code>@Qualifier</code> 切换</li>
-        <li>Controller 不区分持久层：统一 <code>/api/users</code>，列表查询默认分页（第 1 页 10 条）</li>
+        <li>Controller 不区分持久层：统一 <code>/api/user</code>，分页/条件查询合并为 <code>POST /api/user/query</code>（第 1 页 10 条）</li>
         <li>JPA 负责建表（<code>ddl-auto: update</code>），MyBatis 通过 XML Mapper 读写同一张 <code>users</code> 表</li>
         <li>事务统一由 Spring 管理（<code>@Transactional</code> 同时覆盖两套持久层）</li>
       </ul>

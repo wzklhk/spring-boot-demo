@@ -1,6 +1,6 @@
 package com.example.demo.auth;
 
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

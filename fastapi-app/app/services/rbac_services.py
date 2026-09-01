@@ -1,7 +1,10 @@
 """角色 / 权限业务 —— 对应 RoleService / PermissionService（JPA 版）"""
+import math
+
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..schemas import PageResult, PermissionVO, RoleVO
 from .user_service import BizError
 
 
@@ -11,6 +14,29 @@ class RoleService:
 
     def find_all(self) -> list[models.Role]:
         return self.db.query(models.Role).order_by(models.Role.id).all()
+
+    def query(self, vo: RoleVO, page: int = 1, size: int = 10) -> PageResult:
+        """统一分页查询：VO 非空字段为等值条件，空 VO 即普通分页查询"""
+        q = self.db.query(models.Role)
+        if vo.id is not None:
+            q = q.filter(models.Role.id == vo.id)
+        if vo.code:
+            q = q.filter(models.Role.code == vo.code)
+        if vo.name:
+            q = q.filter(models.Role.name == vo.name)
+        if vo.description:
+            q = q.filter(models.Role.description == vo.description)
+        total = q.count()
+        safe_page = max(page, 1)
+        safe_size = max(size, 1)
+        rows = (
+            q.order_by(models.Role.id)
+            .offset((safe_page - 1) * safe_size)
+            .limit(safe_size)
+            .all()
+        )
+        pages = math.ceil(total / safe_size) if safe_size > 0 else 0
+        return PageResult(list=rows, total=total, page=safe_page, size=safe_size, pages=pages)
 
     def find_by_id(self, role_id: int) -> models.Role:
         role = self.db.get(models.Role, role_id)
@@ -52,6 +78,29 @@ class PermissionService:
 
     def find_all(self) -> list[models.Permission]:
         return self.db.query(models.Permission).order_by(models.Permission.id).all()
+
+    def query(self, vo: PermissionVO, page: int = 1, size: int = 10) -> PageResult:
+        """统一分页查询：VO 非空字段为等值条件，空 VO 即普通分页查询"""
+        q = self.db.query(models.Permission)
+        if vo.id is not None:
+            q = q.filter(models.Permission.id == vo.id)
+        if vo.code:
+            q = q.filter(models.Permission.code == vo.code)
+        if vo.name:
+            q = q.filter(models.Permission.name == vo.name)
+        if vo.description:
+            q = q.filter(models.Permission.description == vo.description)
+        total = q.count()
+        safe_page = max(page, 1)
+        safe_size = max(size, 1)
+        rows = (
+            q.order_by(models.Permission.id)
+            .offset((safe_page - 1) * safe_size)
+            .limit(safe_size)
+            .all()
+        )
+        pages = math.ceil(total / safe_size) if safe_size > 0 else 0
+        return PageResult(list=rows, total=total, page=safe_page, size=safe_size, pages=pages)
 
     def find_by_id(self, permission_id: int) -> models.Permission:
         permission = self.db.get(models.Permission, permission_id)

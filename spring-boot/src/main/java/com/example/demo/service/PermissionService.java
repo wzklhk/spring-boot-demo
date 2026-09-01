@@ -1,18 +1,19 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Permission;
+import com.example.demo.pojo.entity.Permission;
 import com.example.demo.repository.PermissionRepository;
 import com.example.demo.repository.RolePermissionRepository;
 import com.example.demo.service.impl.BaseServiceImpl;
+import com.example.demo.pojo.vo.PermissionVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 权限业务（RBAC）—— 继承 BaseServiceImpl 获得统一 CRUD + 分页；
+ * 权限业务（RBAC）—— 继承 BaseServiceImpl 获得统一 CRUD + 分页 + 条件分页；
  * 覆写 create/update/delete 保持原有特殊逻辑（编码/名称唯一校验、级联清理）。
  */
 @Service
-public class PermissionService extends BaseServiceImpl<Permission, Long, PermissionRepository> {
+public class PermissionService extends BaseServiceImpl<Permission, Long, PermissionRepository, PermissionVO, PermissionVO> {
 
     private final RolePermissionRepository rolePermissionRepository;
 
@@ -25,6 +26,16 @@ public class PermissionService extends BaseServiceImpl<Permission, Long, Permiss
     @Override
     protected String entityName() {
         return "权限";
+    }
+
+    @Override
+    protected Permission newEntity() {
+        return new Permission();
+    }
+
+    @Override
+    protected PermissionVO newVO() {
+        return new PermissionVO();
     }
 
     @Override

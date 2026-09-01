@@ -1,6 +1,6 @@
-"""MyBatis 版用户接口 —— 对应 MyBatisUserController：/api/mybatis/users。
+"""MyBatis 版用户接口 —— 对应 MyBatisUserController：/api/mybatis/user。
 
-与 /api/users（ORM 版）功能等价，消息带 "(MyBatis)" 后缀 —— 用于对比验证双持久层。
+与 /api/user（ORM 版）功能等价，消息带 "(MyBatis)" 后缀 —— 用于对比验证双持久层。
 """
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
@@ -12,13 +12,8 @@ from ..schemas import UserCreate, UserOut, UserUpdate
 from ..services.user_mybatis_service import UserMyBatisService
 
 router = APIRouter(
-    prefix="/api/mybatis/users", tags=["用户管理(MyBatis)"], dependencies=[Depends(get_current_user)]
+    prefix="/api/mybatis/user", tags=["用户管理(MyBatis)"], dependencies=[Depends(get_current_user)]
 )
-
-
-@router.get("", response_model=Result[list[UserOut]])
-def list_users(db: Session = Depends(get_db)):
-    return Result.success("success (MyBatis)", UserMyBatisService(db).find_all())
 
 
 @router.get("/username/{username}", response_model=Result[UserOut])

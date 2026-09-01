@@ -1,6 +1,6 @@
 package com.example.demo.auth.vo;
 
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -2,11 +2,14 @@
 
 与 mybatis 版功能等价，共享同一张 user 表。
 """
+import math
+
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import DEFAULT_PASSWORD
 from ..core.security import password_encoder
+from ..schemas import PageResult, UserVO
 
 
 class BizError(Exception):
@@ -21,6 +24,27 @@ class UserService:
 
     def find_all(self) -> list[models.User]:
         return self.db.query(models.User).order_by(models.User.id).all()
+
+    def query(self, vo: UserVO, page: int = 1, size: int = 10) -> PageResult:
+        """统一分页查询：VO 非空字段为等值条件，空 VO 即普通分页查询"""
+        q = self.db.query(models.User)
+        if vo.id is not None:
+            q = q.filter(models.User.id == vo.id)
+        if vo.username:
+            q = q.filter(models.User.username == vo.username)
+        if vo.email:
+            q = q.filter(models.User.email == vo.email)
+        total = q.count()
+        safe_page = max(page, 1)
+        safe_size = max(size, 1)
+        rows = (
+            q.order_by(models.User.id)
+            .offset((safe_page - 1) * safe_size)
+            .limit(safe_size)
+            .all()
+        )
+        pages = math.ceil(total / safe_size) if safe_size > 0 else 0
+        return PageResult(list=rows, total=total, page=safe_page, size=safe_size, pages=pages)
 
     def find_by_id(self, user_id: int) -> models.User:
         user = self.db.get(models.User, user_id)

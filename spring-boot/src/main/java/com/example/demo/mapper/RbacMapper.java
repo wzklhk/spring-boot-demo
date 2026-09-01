@@ -1,6 +1,6 @@
 package com.example.demo.mapper;
 
-import com.example.demo.vo.UserPermissionVO;
+import com.example.demo.pojo.vo.UserPermissionVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

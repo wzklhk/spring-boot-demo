@@ -1,8 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.common.Result;
-import com.example.demo.entity.User;
+import com.example.demo.pojo.entity.User;
 import com.example.demo.service.UserService;
+import com.example.demo.pojo.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,15 +12,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 用户接口 —— 统一 CRUD + 分页由 BaseController 提供。
+ * 用户接口 —— 统一 CRUD + 分页 + 条件分页由 BaseController 提供。
  * 不区分持久层实现：Service 面向 UserService 接口，默认注入 MyBatis 实现（@Primary）。
  */
 @Tag(name = "用户管理",
         description = "统一 CRUD 接口：Controller 不区分持久层，Service 多态默认 MyBatis 实现（JPA 可 @Qualifier 切换）。\n"
-                + "列表查询默认分页：GET /api/users?page=1&size=10（缺省第 1 页、每页 10 条）")
+                + "列表查询默认分页：GET /api/user?page=1&size=10（缺省第 1 页、每页 10 条）；"
+                + "条件分页查询：POST /api/user/query，请求体传 UserVO（非空字段为等值条件）")
 @RestController
-@RequestMapping("/api/users")
-public class UserController extends BaseController<User, Long> {
+@RequestMapping("/api/user")
+public class UserController extends BaseController<User, Long, UserVO, UserVO> {
 
     private final UserService userService;
 
