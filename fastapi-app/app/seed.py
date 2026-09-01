@@ -8,12 +8,12 @@ from .models import Permission, Role, RolePermission, User, UserRole
 from .core.security import password_encoder
 
 SEED = {
-    "users": [{"username": "admin", "email": "admin@example.com", "password": "123456"}],
-    "roles": [
+    "user": [{"username": "admin", "email": "admin@example.com", "password": "123456"}],
+    "role": [
         {"code": "ADMIN", "name": "管理员", "description": "拥有全部权限"},
         {"code": "OPERATOR", "name": "操作员", "description": "基础操作权限"},
     ],
-    "permissions": [
+    "permission": [
         {"code": "user:create", "name": "创建用户", "description": "创建用户"},
         {"code": "user:read", "name": "查看用户", "description": "查看用户列表与详情"},
         {"code": "user:update", "name": "更新用户", "description": "更新用户信息"},
@@ -39,14 +39,14 @@ def run() -> None:
             return
 
         user = None
-        for u in SEED["users"]:
+        for u in SEED["user"]:
             user = models_user(db, u["username"], u["email"], u["password"])
         role_admin = None
-        for r in SEED["roles"]:
+        for r in SEED["role"]:
             role = models_role(db, r["code"], r["name"], r["description"])
             if r["code"] == "ADMIN":
                 role_admin = role
-        for p in SEED["permissions"]:
+        for p in SEED["permission"]:
             models_permission(db, p["code"], p["name"], p["description"])
         # ADMIN 角色挂上全部权限
         all_perms = db.query(Permission).all()

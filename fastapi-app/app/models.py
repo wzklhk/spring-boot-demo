@@ -19,9 +19,9 @@ class TimestampMixin:
 
 
 class User(TimestampMixin, Base):
-    """用户 —— 对应 users 表（JPA User entity）"""
+    """用户 —— 对应 user 表（JPA User entity）"""
 
-    __tablename__ = "users"
+    __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
@@ -31,9 +31,9 @@ class User(TimestampMixin, Base):
 
 
 class Role(TimestampMixin, Base):
-    """角色 —— 对应 roles 表"""
+    """角色 —— 对应 role 表"""
 
-    __tablename__ = "roles"
+    __tablename__ = "role"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     code: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
@@ -42,9 +42,9 @@ class Role(TimestampMixin, Base):
 
 
 class Permission(TimestampMixin, Base):
-    """权限 —— 对应 permissions 表；编码约定 资源:动作（user:create）"""
+    """权限 —— 对应 permission 表；编码约定 资源:动作（user:create）"""
 
-    __tablename__ = "permissions"
+    __tablename__ = "permission"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     code: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
@@ -53,28 +53,28 @@ class Permission(TimestampMixin, Base):
 
 
 class UserRole(Base):
-    """用户-角色关联 —— 对应 user_roles 表（多对多）"""
+    """用户-角色关联 —— 对应 user_role 表（多对多）"""
 
-    __tablename__ = "user_roles"
+    __tablename__ = "user_role"
     __table_args__ = (UniqueConstraint("user_id", "role_id", name="uk_user_role"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    role_id: Mapped[int] = mapped_column(ForeignKey("role.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )
 
 
 class RolePermission(Base):
-    """角色-权限关联 —— 对应 role_permissions 表（多对多）"""
+    """角色-权限关联 —— 对应 role_permission 表（多对多）"""
 
-    __tablename__ = "role_permissions"
+    __tablename__ = "role_permission"
     __table_args__ = (UniqueConstraint("role_id", "permission_id", name="uk_role_permission"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=False)
-    permission_id: Mapped[int] = mapped_column(ForeignKey("permissions.id"), nullable=False)
+    role_id: Mapped[int] = mapped_column(ForeignKey("role.id"), nullable=False)
+    permission_id: Mapped[int] = mapped_column(ForeignKey("permission.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )

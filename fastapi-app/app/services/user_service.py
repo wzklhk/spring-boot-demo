@@ -1,6 +1,6 @@
 """用户业务 —— 对应 JPA 版 UserService（SQLAlchemy ORM）。
 
-与 mybatis 版功能等价，共享同一张 users 表。
+与 mybatis 版功能等价，共享同一张 user 表。
 """
 from sqlalchemy.orm import Session
 

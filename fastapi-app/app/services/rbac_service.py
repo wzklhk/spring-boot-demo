@@ -109,10 +109,10 @@ class RbacService:
                    r.code AS roleCode,
                    r.name AS roleName,
                    ur.created_at AS grantedAt
-            FROM user_roles ur
-                JOIN roles r ON ur.role_id = r.id
-                JOIN role_permissions rp ON rp.role_id = r.id
-                JOIN permissions p ON rp.permission_id = p.id
+            FROM user_role ur
+                JOIN role r ON ur.role_id = r.id
+                JOIN role_permission rp ON rp.role_id = r.id
+                JOIN permission p ON rp.permission_id = p.id
             WHERE ur.user_id = :userId
             ORDER BY p.id, r.id
             """

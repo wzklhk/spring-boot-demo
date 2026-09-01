@@ -1,7 +1,7 @@
 """用户业务（MyBatis 等价）—— 对应 UserMyBatisService。
 
 与 JPA 版 UserService 功能等价，但用原生 SQL（对应 UserMapper.xml），
-共享同一张 users 表 —— 复刻 Java 版"双持久层并存"的设计。
+共享同一张 user 表 —— 复刻 Java 版"双持久层并存"的设计。
 """
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -30,12 +30,12 @@ class UserMyBatisService:
         )
 
     def find_all(self) -> list[models.User]:
-        rows = self.db.execute(text(f"SELECT {BASE_COLUMNS} FROM users ORDER BY id")).all()
+        rows = self.db.execute(text(f"SELECT {BASE_COLUMNS} FROM user ORDER BY id")).all()
         return [self._row_to_user(r) for r in rows]
 
     def find_by_id(self, user_id: int) -> models.User:
         row = self.db.execute(
-            text(f"SELECT {BASE_COLUMNS} FROM users WHERE id = :id"), {"id": user_id}
+            text(f"SELECT {BASE_COLUMNS} FROM user WHERE id = :id"), {"id": user_id}
         ).first()
         user = self._row_to_user(row)
         if user is None:
@@ -44,7 +44,7 @@ class UserMyBatisService:
 
     def find_by_username(self, username: str) -> models.User:
         row = self.db.execute(
-            text(f"SELECT {BASE_COLUMNS} FROM users WHERE username = :username"),
+            text(f"SELECT {BASE_COLUMNS} FROM user WHERE username = :username"),
             {"username": username},
         ).first()
         user = self._row_to_user(row)
@@ -54,13 +54,13 @@ class UserMyBatisService:
 
     def count_by_username(self, username: str) -> int:
         return self.db.execute(
-            text("SELECT COUNT(*) FROM users WHERE username = :username"),
+            text("SELECT COUNT(*) FROM user WHERE username = :username"),
             {"username": username},
         ).scalar()
 
     def count_by_email(self, email: str) -> int:
         return self.db.execute(
-            text("SELECT COUNT(*) FROM users WHERE email = :email"), {"email": email}
+            text("SELECT COUNT(*) FROM user WHERE email = :email"), {"email": email}
         ).scalar()
 
     def create(self, username: str, email: str, password: str | None = None) -> models.User:
@@ -72,7 +72,7 @@ class UserMyBatisService:
         raw = password if password and password.strip() else DEFAULT_PASSWORD
         result = self.db.execute(
             text(
-                "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)"
+                "INSERT INTO user (username, email, password) VALUES (:username, :email, :password)"
             ),
             {"username": username, "email": email, "password": password_encoder.encode(raw)},
         )
@@ -82,7 +82,7 @@ class UserMyBatisService:
     def update(self, user_id: int, username: str, email: str) -> models.User:
         existing = self.find_by_id(user_id)
         self.db.execute(
-            text("UPDATE users SET username = :username, email = :email, updated_at = CURRENT_TIMESTAMP WHERE id = :id"),
+            text("UPDATE user SET username = :username, email = :email, updated_at = CURRENT_TIMESTAMP WHERE id = :id"),
             {"username": username, "email": email, "id": user_id},
         )
         self.db.commit()
@@ -94,6 +94,6 @@ class UserMyBatisService:
         if self.find_by_id(user_id) is None:
             raise BizError(f"用户不存在，ID: {user_id}")
         # 级联清理：用户-角色 关联
-        self.db.execute(text("DELETE FROM user_roles WHERE user_id = :id"), {"id": user_id})
-        self.db.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id})
+        self.db.execute(text("DELETE FROM user_role WHERE user_id = :id"), {"id": user_id})
+        self.db.execute(text("DELETE FROM user WHERE id = :id"), {"id": user_id})
         self.db.commit()

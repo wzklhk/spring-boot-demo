@@ -57,7 +57,7 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - 密码 BCrypt 存储，永不出现在响应中；未传密码默认 `123456`
 - JWT：`sub`=用户名、`uid`、`jti` 唯一；登出按 jti 进内存黑名单
 - 创建时用户名/邮箱（用户）、code（角色/权限）查重 → 400
-- 删除用户级联清理 user_roles；删除角色/权限级联清理关联表
+- 删除用户级联清理 user_role；删除角色/权限级联清理关联表
 - 校验失败 → 400 + `errors` 字段（Java 版 `MethodArgumentNotValidException` 行为）
 - 登录密码错误 → 401 `用户名或密码错误`（不暴露内部细节）
 - 配置：`JWT_SECRET` / `JWT_EXPIRATION` / `DATABASE_URL` 环境变量可覆盖（见 `app/config.py`）
