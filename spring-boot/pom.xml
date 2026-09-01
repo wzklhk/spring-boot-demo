@@ -134,6 +134,46 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <!-- 前端打包：Maven 构建时自动「安装 Node → npm ci → vite build」，
+                 产物输出到 src/main/resources/static 并随 resources 一起打进 jar
+                 （classpath:/static/），最终生成的 JAR 自包含前端，不再依赖外部 vue/dist。
+                 需要跳过前端构建时（例如仅跑后端 / 离线 CI）：
+                   ./mvnw package -Dskip.installnodenpm -Dskip.npm
+                 注：Node 默认从 nodejs.org 下载、npm 依赖从 registry.npmjs.org 拉取，
+                 如网络受限可用系统 Node 后改为调用本地 npm。 -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.1</version>
+                <configuration>
+                    <workingDirectory>${project.basedir}/../vue</workingDirectory>
+                    <installDirectory>${project.build.directory}/node</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                        <configuration>
+                            <nodeVersion>v22.14.0</nodeVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-ci</id>
+                        <goals><goal>npm</goal></goals>
+                        <configuration>
+                            <arguments>ci</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-build</id>
+                        <goals><goal>npm</goal></goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

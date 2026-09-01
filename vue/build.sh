@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ============================================================
-# spring-boot-demo 前端 — 编译脚本
-#   npm run build → vue/dist/（生产构建产物）
-#   部署时由 docker-compose 挂载 dist/ → 容器 /app/frontend
-#   （见 deploy/docker-compose.app.yaml），改前端只需重新构建，
-#   无需重建后端镜像/重启容器
+# spring-boot-demo 前端 — 手动编译脚本（可选）
+#   通常无需手动执行：Maven 构建（frontend-maven-plugin）会自动完成
+#   npm ci + vite build（见 spring-boot/pom.xml），产物随后端一并打进 jar
+#   （classpath:/static/），JAR 自包含，不再依赖外部 vue/dist 挂载。
+#   仅当你只想单独构建/检查前端产物时才用本脚本。
 #
 # 用法:
 #   ./build.sh         构建生产包
@@ -12,8 +12,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-VUE_DIR="$(pwd)"
-DIST_DIR="$VUE_DIR/dist"
+OUT_DIR="$PWD/../spring-boot/src/main/resources/static"
 
 # ---- 颜色 ----
 RED='\033[0;31m'
@@ -35,21 +34,17 @@ fi
 ok "node=$(node -v), npm=$(npm -v)"
 
 # ---- 安装依赖 ----
-if [ ! -d node_modules ]; then
-    info "安装前端依赖 (npm install)..."
-    npm install
-    ok "依赖安装完成"
-else
-    info "node_modules 已存在，跳过安装"
-fi
+info "安装前端依赖 (npm ci)..."
+npm ci
+ok "依赖安装完成"
 
 # ---- 构建 ----
 info "开始编译 (npm run build)..."
 npm run build
-ok "构建完成 → $DIST_DIR/"
+ok "构建完成 → $OUT_DIR/"
 
-if [ ! -f "$DIST_DIR/index.html" ]; then
-    warn "未找到 $DIST_DIR/index.html，请检查 vite 配置"
+if [ ! -f "$OUT_DIR/index.html" ]; then
+    warn "未找到 $OUT_DIR/index.html，请检查 vite 配置"
     exit 1
 fi
-ok "index.html 已就位；部署时 compose 会挂载 $DIST_DIR → 容器 /app/frontend"
+ok "index.html 已就位；产物将随后端打进 jar（classpath:/static/）"

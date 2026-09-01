@@ -2,8 +2,9 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // 开发模式：Vite dev server (5173) 将 /api 代理到 Spring Boot (9090, dev profile 端口)
-// 生产模式：构建产物输出到 dist/（不打包进 jar），由 Spring Boot 以 file: 路径静态托管
-//          （deploy/docker-compose.app.yaml 挂载 vue/dist → /app/frontend）
+// 生产模式：frontend-maven-plugin 在 `mvn package` 时执行本构建，
+//           产物输出到 spring-boot/src/main/resources/static，随后端一并打进 jar
+//           （classpath:/static/），最终 JAR 自包含前端，无需外部 vue/dist 挂载
 export default defineConfig({
   plugins: [vue()],
   server: {
@@ -20,7 +21,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'dist',
+    outDir: '../spring-boot/src/main/resources/static',
     emptyOutDir: true
   }
 })

@@ -27,9 +27,8 @@ spring:
 
   web:
     resources:
-      # 前端静态资源从 jar 外读取（compose 挂载 vue/dist → /app/frontend），
-      # classpath:/static/ 兜底（jar 内不再打包前端）
-      static-locations: file:/app/frontend/,classpath:/static/
+      # 前端由 Maven 自动构建并打进 jar（classpath:/static/），JAR 自包含，无需外部挂载
+      static-locations: classpath:/static/
 
   h2:
     console:

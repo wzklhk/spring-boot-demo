@@ -32,8 +32,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=springboot
       - SPRING_DATASOURCE_PASSWORD=springboot123
-    volumes:
-      - ../vue/dist:/app/frontend         # 前端产物挂载（构建: cd vue && npm run build）
     healthcheck:
       # 探测首页 / 而非 /api/users：/api/** 需 JWT（401），wget 会误判为不健康
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/"]

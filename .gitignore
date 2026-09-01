@@ -42,6 +42,6 @@ build/
 vue/node_modules/
 vue/dist/
 
-### 前端构建产物（Vite 输出到 vue/dist，由 Docker 挂载托管，不进 jar） ###
+### 前端构建产物（Vite 输出到 spring-boot/src/main/resources/static，随 Maven 打包进 jar，不入 git） ###
 spring-boot/src/main/resources/static/*
 !spring-boot/src/main/resources/static/.gitkeep

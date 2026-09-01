@@ -22,9 +22,9 @@ cd vue && npm install && npm run dev       # 前端 → http://localhost:5173
 
 ```bash
 docker volume create spring-boot-demo-mysql-data   # 首次部署执行一次
-cd vue && npm run build
 cd deploy && docker compose up -d --build          # 应用 8080 + MySQL 3306
 ```
+前端在 `mvn package` 时自动构建并打进 jar，镜像/容器无需再挂载 `vue/dist`。
 
 首次访问需注册/登录（默认管理员 **admin / 123456**）。
 
@@ -35,6 +35,7 @@ cd deploy && docker compose up -d --build          # 应用 8080 + MySQL 3306
 - RBAC 五表权限模型（角色/权限 CRUD + 级联清理）
 - JPA + MyBatis 双持久层共存（共享同一张表，接口等价）
 - 建表由 `schema.sql` / `data.sql` 启动时幂等执行（不依赖 JPA ddl-auto）
+- 前端由 Maven 自动构建并打进 jar，`./mvnw package` 产出自包含单 JAR（前端在 `classpath:/static/`，不再依赖外部 `vue/dist`）
 - dev 彩色日志、前端 hash 路由
 
 ## 文档
