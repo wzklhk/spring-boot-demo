@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** 登录/注册成功响应：token + 用户摘要 */
+import java.util.List;
+
+/** 登录成功响应：token + 用户摘要（含角色编码，前端据此控制查看/修改入口） */
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,9 +28,10 @@ public class AuthResponse {
         private Long id;
         private String username;
         private String email;
+        private List<String> roles;
     }
 
-    public static AuthResponse from(User user, String token, long expiresIn) {
+    public static AuthResponse from(User user, String token, long expiresIn, List<String> roles) {
         return AuthResponse.builder()
                 .token(token)
                 .tokenType("Bearer")
@@ -37,6 +40,7 @@ public class AuthResponse {
                         .id(user.getId())
                         .username(user.getUsername())
                         .email(user.getEmail())
+                        .roles(roles)
                         .build())
                 .build();
     }

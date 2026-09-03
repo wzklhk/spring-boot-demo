@@ -8,12 +8,13 @@
         <result property="username" column="username"/>
         <result property="email" column="email"/>
         <result property="password" column="password"/>
+        <result property="createdBy" column="created_by"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, username, email, password, created_at, updated_at
+        id, username, email, password, created_by, created_at, updated_at
     </sql>
 
     <!-- 条件查询公共 WHERE：VO 非空字段作为等值条件 -->
@@ -22,6 +23,7 @@
             <if test="vo.id != null">AND id = #{vo.id}</if>
             <if test="vo.username != null and vo.username != ''">AND username = #{vo.username}</if>
             <if test="vo.email != null and vo.email != ''">AND email = #{vo.email}</if>
+            <if test="vo.createdBy != null and vo.createdBy != ''">AND created_by = #{vo.createdBy}</if>
         </where>
     </sql>
 
@@ -92,8 +94,8 @@
     <insert id="insert" parameterType="com.example.demo.pojo.entity.User"
             useGeneratedKeys="true" keyProperty="id">
         <!-- created_at / updated_at 由数据库约束自动填充（DEFAULT CURRENT_TIMESTAMP / ON UPDATE） -->
-        INSERT INTO user (username, email, password)
-        VALUES (#{username}, #{email}, #{password})
+        INSERT INTO user (username, email, password, created_by)
+        VALUES (#{username}, #{email}, #{password}, #{createdBy})
     </insert>
 
     <update id="update" parameterType="com.example.demo.pojo.entity.User">
@@ -101,6 +103,12 @@
         UPDATE user
         SET username = #{username},
             email    = #{email}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE user
+        SET password = #{password}
         WHERE id = #{id}
     </update>
 

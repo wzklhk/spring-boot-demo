@@ -1,10 +1,23 @@
 import axios from 'axios'
+import { getToken } from '../utils/auth'
 
-// 认证接口（/api/auth/* 无需 token）
+// 认证接口：/api/auth/login 公开；其余（logout/password/account）需携带 token
 const http = axios.create({
   baseURL: '/api',
   timeout: 10000
 })
+
+// 请求拦截器：登录外的认证接口自动携带 JWT
+http.interceptors.request.use(
+  (config) => {
+    const token = getToken()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (err) => Promise.reject(err)
+)
 
 http.interceptors.response.use(
   (res) => {
@@ -24,8 +37,8 @@ export function login(data) {
   return http.post('/auth/login', data)
 }
 
-export function register(data) {
-  return http.post('/auth/register', data)
+export function changePassword(data) {
+  return http.post('/auth/password', data)
 }
 
 export function logout() {

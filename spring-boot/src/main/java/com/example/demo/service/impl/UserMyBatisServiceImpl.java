@@ -1,5 +1,10 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.auth.SecurityUtils;
+import com.example.demo.cache.CacheInvalidationService;
+import com.example.demo.cache.CacheKeyFactory;
+import com.example.demo.cache.MultiLevelCache;
+import com.example.demo.cache.dto.UserCacheDto;
 import com.example.demo.common.PageResult;
 import com.example.demo.pojo.entity.User;
 import com.example.demo.mapper.UserMapper;
@@ -24,9 +29,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserMyBatisServiceImpl implements UserService {
 
+    private static final String CACHE_USER = "user";
+
     private final UserMapper userMapper;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CacheInvalidationService invalidation;
+    private final MultiLevelCache cache;
 
     /** 全量查询（部分内部场景仍需要） */
     public List<User> findAll() {
@@ -46,7 +55,16 @@ public class UserMyBatisServiceImpl implements UserService {
 
     @Override
     public User getById(Long id) {
-        return findById(id);
+        // 用户资料走脱敏缓存（DTO 不含 password）；写路径内部使用 findById 直读 DB
+        UserCacheDto dto = cache.get(CACHE_USER, CacheKeyFactory.id(id), UserCacheDto.class,
+                () -> {
+                    User user = userMapper.findById(id);
+                    return user == null ? null : UserCacheDto.from(user);
+                });
+        if (dto == null) {
+            throw new RuntimeException("用户不存在，ID: " + id);
+        }
+        return dto.toProfileUser();
     }
 
     public User findById(Long id) {
@@ -59,11 +77,15 @@ public class UserMyBatisServiceImpl implements UserService {
 
     @Override
     public User findByUsername(String username) {
-        User user = userMapper.findByUsername(username);
-        if (user == null) {
+        UserCacheDto dto = cache.get(CACHE_USER, CacheKeyFactory.username(username), UserCacheDto.class,
+                () -> {
+                    User user = userMapper.findByUsername(username);
+                    return user == null ? null : UserCacheDto.from(user);
+                });
+        if (dto == null) {
             throw new RuntimeException("用户不存在，用户名: " + username);
         }
-        return user;
+        return dto.toProfileUser();
     }
 
     @Override
@@ -79,6 +101,11 @@ public class UserMyBatisServiceImpl implements UserService {
         String rawPassword = (user.getPassword() == null || user.getPassword().isBlank())
                 ? "123456" : user.getPassword();
         user.setPassword(passwordEncoder.encode(rawPassword));
+        // 记录创建人：当前登录管理员（种子/系统创建为 NULL）
+        String creator = SecurityUtils.currentUsername();
+        if (creator != null) {
+            user.setCreatedBy(creator);
+        }
         userMapper.insert(user);
         // created_at / updated_at 由数据库约束自动填充，重查一次返回真实值
         return findById(user.getId());
@@ -88,9 +115,12 @@ public class UserMyBatisServiceImpl implements UserService {
     @Transactional
     public User update(Long id, User user) {
         User existing = findById(id);
+        String oldUsername = existing.getUsername();
         existing.setUsername(user.getUsername());
         existing.setEmail(user.getEmail());
         userMapper.update(existing);
+        // 事务提交后清理主键 key 与旧/新 username 索引 key
+        invalidation.evictUserAfterUpdate(id, oldUsername, existing.getUsername());
         // updated_at 由数据库约束自动刷新，重查一次返回真实值
         return findById(id);
     }
@@ -98,12 +128,33 @@ public class UserMyBatisServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (userMapper.findById(id) == null) {
+        User user = userMapper.findById(id);
+        if (user == null) {
             throw new RuntimeException("用户不存在，ID: " + id);
         }
         // 级联清理：用户-角色 关联
         userRoleRepository.deleteByUserId(id);
         userMapper.deleteById(id);
+        // 事务提交后失效用户资料与角色/权限派生缓存
+        invalidation.evictUserAfterDelete(id, user.getUsername());
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("用户不存在，用户名: " + username);
+        }
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("旧密码不正确");
+        }
+        if (oldPassword.equals(newPassword)) {
+            throw new RuntimeException("新密码不能与旧密码相同");
+        }
+        userMapper.updatePassword(user.getId(), passwordEncoder.encode(newPassword));
+        // 改密本身不改变脱敏资料，但清掉可能存在的资料缓存避免任何过期残留
+        invalidation.evictUserProfile(user.getId(), username);
     }
 
     /** 实体 → VO（不含密码） */

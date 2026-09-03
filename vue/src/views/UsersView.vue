@@ -5,10 +5,16 @@
         <h2>用户管理（JPA）</h2>
         <p class="sub">接口前缀 <code>/api/user</code> · 统一分页查询 <code>POST /api/user/query</code></p>
       </div>
-      <el-button type="primary" @click="openCreate">
-        <el-icon style="margin-right: 4px"><Plus /></el-icon>
-        新建用户
-      </el-button>
+      <div class="header-actions">
+        <el-button v-if="canManage" type="primary" @click="openCreate">
+          <el-icon style="margin-right: 4px"><Plus /></el-icon>
+          新建用户
+        </el-button>
+        <el-button plain @click="openPwdDialog">
+          <el-icon style="margin-right: 4px"><Key /></el-icon>
+          修改密码
+        </el-button>
+      </div>
     </div>
 
     <el-card shadow="never" class="table-card">
@@ -34,20 +40,23 @@
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="username" label="用户名" min-width="140" />
         <el-table-column prop="email" label="邮箱" min-width="200" />
+        <el-table-column prop="createdBy" label="创建人" min-width="120">
+          <template #default="{ row }">{{ row.createdBy || '-' }}</template>
+        </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="180">
           <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
         </el-table-column>
         <el-table-column prop="updatedAt" label="更新时间" width="180">
           <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column v-if="canManage" label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
         <template #empty>
-          <el-empty description="暂无用户，点击右上角「新建用户」创建" :image-size="80" />
+          <el-empty description="暂无用户" :image-size="80" />
         </template>
       </el-table>
 
@@ -78,6 +87,16 @@
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="form.email" placeholder="请输入邮箱" />
         </el-form-item>
+        <!-- 仅新建时设置初始密码；编辑不修改密码 -->
+        <el-form-item v-if="!form.id" label="初始密码" prop="password">
+          <el-input v-model="form.password" type="password" show-password
+                    placeholder="6-64 位，用于首次登录" autocomplete="new-password" />
+        </el-form-item>
+        <el-form-item v-if="!form.id" label="确认密码" prop="confirmPassword">
+          <el-input v-model="form.confirmPassword" type="password" show-password
+                    placeholder="再次输入初始密码" autocomplete="new-password"
+                    @keyup.enter="handleSubmit" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -86,33 +105,120 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 修改当前登录用户密码对话框（POST /api/auth/password） -->
+    <el-dialog v-model="pwdDialogVisible" title="修改密码" width="440px" destroy-on-close>
+      <p class="pwd-tip">正在修改当前登录账号「{{ currentUser?.username || '-' }}」的密码</p>
+      <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="80px">
+        <el-form-item label="原密码" prop="oldPassword">
+          <el-input v-model="pwdForm.oldPassword" type="password" show-password
+                    placeholder="请输入原密码" autocomplete="current-password" />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="pwdForm.newPassword" type="password" show-password
+                    placeholder="6-64 位新密码" autocomplete="new-password" />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="pwdForm.confirmPassword" type="password" show-password
+                    placeholder="再次输入新密码" autocomplete="new-password"
+                    @keyup.enter="handlePwdSubmit" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="pwdDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="pwdSubmitting" @click="handlePwdSubmit">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { createUser, deleteUser, queryUsers, updateUser } from '../api/user'
+import { changePassword } from '../api/auth'
+import { getUser } from '../utils/auth'
 
 const users = ref([])
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
+// 仅 ADMIN 角色可新建/编辑/删除用户；其他角色只能查看
+const currentUser = getUser()
+const canManage = computed(() => Array.isArray(currentUser?.roles) && currentUser.roles.includes('ADMIN'))
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 const searchUsername = ref('')
 const searching = ref(false)
 
-const form = reactive({ id: null, username: '', email: '' })
+const form = reactive({ id: null, username: '', email: '', password: '', confirmPassword: '' })
 
 const rules = {
   username: [{ required: true, message: '用户名不能为空', trigger: 'blur' }],
   email: [
     { required: true, message: '邮箱不能为空', trigger: 'blur' },
     { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请设置初始密码', trigger: 'blur' },
+    { min: 6, max: 64, message: '密码长度需在 6-64 之间', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        value === form.password ? callback() : callback(new Error('两次输入的密码不一致'))
+      },
+      trigger: 'blur'
+    }
   ]
+}
+
+// ---- 修改密码（当前登录账号） ----
+const pwdDialogVisible = ref(false)
+const pwdSubmitting = ref(false)
+const pwdFormRef = ref(null)
+const pwdForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' })
+const pwdRules = {
+  oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 64, message: '新密码长度需在 6-64 之间', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        value === pwdForm.newPassword ? callback() : callback(new Error('两次输入的新密码不一致'))
+      },
+      trigger: 'blur'
+    }
+  ]
+}
+
+function openPwdDialog() {
+  pwdForm.oldPassword = ''
+  pwdForm.newPassword = ''
+  pwdForm.confirmPassword = ''
+  pwdDialogVisible.value = true
+}
+
+async function handlePwdSubmit() {
+  await pwdFormRef.value.validate()
+  pwdSubmitting.value = true
+  try {
+    await changePassword({ oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword })
+    ElMessage.success('密码修改成功，请牢记新密码')
+    pwdDialogVisible.value = false
+  } catch (e) {
+    ElMessage.error(e.message)
+  } finally {
+    pwdSubmitting.value = false
+  }
 }
 
 // 统一分页查询：传空 VO {} 即普通分页；搜索时传 username 条件
@@ -157,6 +263,8 @@ function openCreate() {
   form.id = null
   form.username = ''
   form.email = ''
+  form.password = ''
+  form.confirmPassword = ''
   dialogVisible.value = true
 }
 
@@ -164,6 +272,8 @@ function openEdit(row) {
   form.id = row.id
   form.username = row.username
   form.email = row.email
+  form.password = ''
+  form.confirmPassword = ''
   dialogVisible.value = true
 }
 
@@ -175,7 +285,11 @@ async function handleSubmit() {
       await updateUser(form.id, { username: form.username, email: form.email })
       ElMessage.success('更新成功')
     } else {
-      await createUser({ username: form.username, email: form.email })
+      await createUser({
+        username: form.username,
+        email: form.email,
+        password: form.password
+      })
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
@@ -208,8 +322,13 @@ async function handleDelete(row) {
   }
 }
 
+// 后端返回 UTC 时间（带 Z），这里按浏览器本地时区显示
 function formatTime(t) {
-  return t ? t.replace('T', ' ') : '-'
+  if (!t) return '-'
+  const d = new Date(t)
+  if (Number.isNaN(d.getTime())) return t
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
 }
 
 onMounted(fetchUsers)
@@ -256,5 +375,17 @@ onMounted(fetchUsers)
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pwd-tip {
+  margin: 0 0 12px;
+  color: #909399;
+  font-size: 13px;
 }
 </style>

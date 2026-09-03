@@ -25,17 +25,23 @@ spring:
       static-locations: classpath:/static/
 
   datasource:
-    # MODE=MySQL: H2 以 MySQL 兼容模式运行，schema.sql（MySQL 方言）一份脚本通吃 dev/prod
-    # NON_KEYWORDS=USER: 单数表名 user 在 H2 中是保留字，声明为非保留字后可作为标识符使用（MySQL 中 user 非保留字，无需处理）
-    url: jdbc:h2:mem:demodb;MODE=MySQL;NON_KEYWORDS=USER;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: "jdbc:mysql://localhost:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: springboot
+    password: springboot123
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+#  datasource:
+#    # MODE=MySQL: H2 以 MySQL 兼容模式运行，schema.sql（MySQL 方言）一份脚本通吃 dev/prod
+#    # NON_KEYWORDS=USER: 单数表名 user 在 H2 中是保留字，声明为非保留字后可作为标识符使用（MySQL 中 user 非保留字，无需处理）
+#    url: jdbc:h2:mem:demodb;MODE=MySQL;NON_KEYWORDS=USER;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;INIT=SET TIME ZONE 'UTC'
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
+#
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
 
   jpa:
     # 建表/种子数据由 schema.sql + data.sql 完成（主配置 ddl-auto: none），此处仅保留 SQL 日志

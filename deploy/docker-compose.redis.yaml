@@ -1,0 +1,31 @@
+# ============================================================
+# spring-boot-demo — Redis 独立编排（多级缓存 L2 + Pub/Sub）
+# 项目名固定 spring-boot-demo（与总入口一致）
+#
+# 用法（在 deploy/ 目录执行）:
+#   docker compose -f docker-compose.redis.yaml up -d      启动
+#   docker compose -f docker-compose.redis.yaml down       停止并移除容器
+#
+# 端口: 宿主机 6379 → 容器 6379（标准端口；公共组件）
+# ============================================================
+name: spring-boot-demo
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: spring-boot-demo-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  redis-data:
+    name: spring-boot-demo-redis-data

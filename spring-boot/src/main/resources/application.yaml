@@ -27,6 +27,12 @@ spring:
       mode: always
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
 
 # MyBatis 配置（与 JPA 共存，共享同一数据源）
 mybatis:
@@ -57,3 +63,59 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+# ============================================================
+# 多级缓存（L1 Caffeine + L2 Redis）
+# 可按实体调整开关 / maximum-size / ttl / l2-ttl，无需重新编译
+# ============================================================
+cache:
+  enabled: true
+
+  l1:
+    enabled: true
+
+  l2:
+    enabled: true
+
+  # Redis Pub/Sub channel：多 JVM 实例间广播 L1 失效
+  channel: sb:cache:invalidation
+
+  entities:
+    # User 缓存“脱敏资料 DTO”（不含 password）；认证/鉴权直读 DB，改资料/改密/删除后事件失效
+    user:
+      enabled: true
+      maximum-size: 5000
+      ttl: 1m
+      l2-ttl: 5m
+
+    # 角色/权限：读多写少（内容字典），写后由事件驱动失效
+    role:
+      enabled: true
+      maximum-size: 500
+      ttl: 5m
+      l2-ttl: 30m
+
+    permission:
+      enabled: true
+      maximum-size: 500
+      ttl: 5m
+      l2-ttl: 30m
+
+    # 派生读模型：由 user_role / role_permission 关系写入驱动失效
+    user-roles:
+      enabled: true
+      maximum-size: 5000
+      ttl: 1m
+      l2-ttl: 5m
+
+    role-permissions:
+      enabled: true
+      maximum-size: 1000
+      ttl: 1m
+      l2-ttl: 5m
+
+    user-permissions:
+      enabled: true
+      maximum-size: 5000
+      ttl: 1m
+      l2-ttl: 5m

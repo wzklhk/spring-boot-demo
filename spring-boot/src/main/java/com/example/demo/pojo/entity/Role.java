@@ -3,28 +3,23 @@ package com.example.demo.pojo.entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import java.time.LocalDateTime;
 
 /**
- * 角色实体（RBAC）—— 对应表 role
+ * 角色实体（RBAC）—— 对应表 role；主键与创建/修改时间见 {@link BaseDO}
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "role")
-public class Role {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Role extends BaseDO {
 
     /** 角色编码，如 ADMIN / OPERATOR，唯一 */
     @NotBlank(message = "角色编码不能为空")
@@ -38,13 +33,4 @@ public class Role {
 
     @Column(length = 255)
     private String description;
-
-    /** created_at / updated_at 由数据库约束自动维护（DEFAULT CURRENT_TIMESTAMP / ON UPDATE），应用侧不写入 */
-    @Column(name = "created_at", updatable = false)
-    @Generated(GenerationTime.INSERT)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @Generated(GenerationTime.ALWAYS)
-    private LocalDateTime updatedAt;
 }

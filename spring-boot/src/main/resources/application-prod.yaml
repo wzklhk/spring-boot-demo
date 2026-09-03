@@ -14,7 +14,7 @@ server:
 
 spring:
   datasource:
-    url: "${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}"
+    url: "${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/springboot_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}"
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:root}

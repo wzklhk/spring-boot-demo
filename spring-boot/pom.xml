@@ -62,6 +62,16 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- 多级缓存：L1 Caffeine（本地） + L2 Redis（分布式） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- MyBatis（与 JPA 共存，共享同一数据源） -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>

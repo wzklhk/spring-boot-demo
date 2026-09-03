@@ -3,29 +3,24 @@ package com.example.demo.pojo.entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import java.time.LocalDateTime;
 
 /**
- * 权限实体（RBAC）—— 对应表 permission
+ * 权限实体（RBAC）—— 对应表 permission；主键与创建/修改时间见 {@link BaseDO}
  * 权限编码约定：资源:动作，如 user:create / role:delete
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "permission")
-public class Permission {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Permission extends BaseDO {
 
     /** 权限编码，如 user:create，唯一 */
     @NotBlank(message = "权限编码不能为空")
@@ -39,13 +34,4 @@ public class Permission {
 
     @Column(length = 255)
     private String description;
-
-    /** created_at / updated_at 由数据库约束自动维护（DEFAULT CURRENT_TIMESTAMP / ON UPDATE），应用侧不写入 */
-    @Column(name = "created_at", updatable = false)
-    @Generated(GenerationTime.INSERT)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @Generated(GenerationTime.ALWAYS)
-    private LocalDateTime updatedAt;
 }

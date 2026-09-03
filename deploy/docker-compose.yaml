@@ -25,4 +25,5 @@ name: spring-boot-demo
 
 include:
   - docker-compose.mysql.yaml
+  - docker-compose.redis.yaml
   - docker-compose.app.yaml

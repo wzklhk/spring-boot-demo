@@ -49,9 +49,9 @@ class Knife4jDocsTests {
         // 关键路径都应暴露（单数资源名）
         JsonNode paths = root.path("paths");
         for (String expected : List.of(
-                "/api/auth/register",
                 "/api/auth/login",
                 "/api/auth/logout",
+                "/api/auth/password",
                 "/api/user/query",
                 "/api/user/username/{username}",
                 "/api/user/{id}",

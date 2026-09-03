@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * 用户视图对象 —— 条件分页查询的入参与返回体。
  *
  * 入参：非空字段作为等值查询条件（不包含密码，密码永不随接口返回）；
- * 返回：与实体字段一一对应（id/username/email/时间戳），作为分页结果 VO。
+ * 返回：与实体字段一一对应（id/username/email/createdBy/时间戳），作为分页结果 VO。
  */
 @Data
 @Builder
@@ -24,6 +24,9 @@ public class UserVO {
     private String username;
 
     private String email;
+
+    /** 创建人用户名（NULL 表示种子/系统创建） */
+    private String createdBy;
 
     private LocalDateTime createdAt;
 

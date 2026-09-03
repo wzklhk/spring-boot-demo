@@ -12,4 +12,7 @@ public interface UserService extends BaseService<User, Long, UserVO, UserVO> {
 
     /** 按用户名精确查询 */
     User findByUsername(String username);
+
+    /** 修改用户密码：校验旧密码通过后写入新密码（BCrypt 加密存储） */
+    void changePassword(String username, String oldPassword, String newPassword);
 }

@@ -26,12 +26,12 @@ cd deploy && docker compose up -d --build          # 应用 8080 + MySQL 3306
 ```
 前端在 `mvn package` 时自动构建并打进 jar，镜像/容器无需再挂载 `vue/dist`。
 
-首次访问需注册/登录（默认管理员 **admin / 123456**）。
+首次访问使用默认管理员 **admin / 123456** 登录（不支持自行注册，新账号由管理员在用户管理中创建）。
 
 ## 核心特性
 
 - 统一响应 `{code, message, data}`、全局异常处理、参数校验
-- JWT 登录鉴权（24h 有效、退出黑名单、BCrypt 密码）
+- JWT + RBAC 权限控制：用户/角色/权限等配置仅 ADMIN 可修改，其他角色只读（24h 有效、退出黑名单、BCrypt 密码）
 - RBAC 五表权限模型（角色/权限 CRUD + 级联清理）
 - JPA + MyBatis 双持久层共存（共享同一张表，接口等价）
 - 建表由 `schema.sql` / `data.sql` 启动时幂等执行（不依赖 JPA ddl-auto）

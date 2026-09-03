@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS user (
     username    VARCHAR(255) NOT NULL,
     email       VARCHAR(255) NOT NULL,
     password    VARCHAR(100) NOT NULL,
+    -- 创建人用户名（NULL = 种子/系统创建）；由应用侧在创建用户时写入
+    created_by  VARCHAR(64),
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uk_user_username UNIQUE (username)
