@@ -25,9 +25,9 @@ uv run python -m app.seed    # 可选：初始化 admin/123456 + RBAC 种子数�
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-- Swagger 文档：http://localhost:8000/docs
-- OpenAPI JSON：http://localhost:8000/openapi.json
-- 健康检查：http://localhost:8000/api/health
+- Swagger 文档：<http://localhost:8000/docs>
+- OpenAPI JSON：<http://localhost:8000/openapi.json>
+- 健康检查：<http://localhost:8000/api/health>
 
 ## 接口清单（与 Java 版一致）
 
